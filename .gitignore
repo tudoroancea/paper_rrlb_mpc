@@ -1,0 +1,7 @@
+.vscode
+.idea
+# python stuff
+*.pyc
+__pycache__
+*.egg-info
+*.egg
