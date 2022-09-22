@@ -5,3 +5,6 @@
 __pycache__
 *.egg-info
 *.egg
+latex/main.*
+!latex/main.pdf
+!latex/main.tex
