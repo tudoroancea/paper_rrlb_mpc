@@ -81,6 +81,7 @@ def export_cstr_model(dt: float, rk4_nodes: int = 6):
         new_x += dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
 
     model = AcadosModel()
+    model.f_impl_expr = xdot - f_cont(x, u)
     model.f_expl_expr = f_cont(x, u)
     model.disc_dyn_expr = new_x
     model.x = x
