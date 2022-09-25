@@ -375,8 +375,8 @@ When no confusion is possible we will drop the "$(x)$".
 		\implies\tilde{l}(x,Kx)&=x^TQ_Kx+O(\|x\|^3)\,.
 	\end{align*}
 	By the second assumption, we also have $\forall x\in\R^{n_x}$:
-	$$\tilde{F}(A_Kx)+\mu x^T Q_K x-\tilde{F}(x)=0$$
 	We can use the same reasoning as in the paragraph 2.5.5 of \cite{MPC-book} to show that $\tilde{F}$ is a local Lyapunov function, i.e. there exists a neighborhood of the origin in which:
+	$$\tilde{F}(A_Kx)+\mu x^T Q_K x-\tilde{F}(x)=0$$
 	$$\tilde{F}(f(x,Kx))+x^T Q_K x-\tilde{F}(x)\leq 0\Longrightarrow\tilde{F}(f(x,Kx))-\tilde{F}(x)+\tilde{l}(x,Kx)=O(\|x\|^3)\,.$$
 
 	\noindent What's more, by previous lemma, the predicted states are all Lipschitz with respect to the initial state, so we can choose an even smaller neighborhood such that $\tilde{x}_N(x)$ is also in it.
