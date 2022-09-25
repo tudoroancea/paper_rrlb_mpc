@@ -55,6 +55,9 @@ def plot_cstr(
     plt.plot(t_u, np.ones_like(t_u) * ocp.dims.nu[1]["lbu"], "b:")
     plt.plot(t_u, np.ones_like(t_u) * ocp.dims.nu[1]["ubu"], "b:")
 
+    plt.tight_layout()
+    plt.grid()
+
     if file_name != "":
         plt.savefig(file_name, dpi=300, format="png")
 

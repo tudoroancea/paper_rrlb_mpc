@@ -72,7 +72,7 @@ def run_closed_loop_simulation(
         ur,
         x_sim,
         u_sim,
-        dt,
+        dt * 3600,
         # file_name="cstr_closed_loop_simulation",
         show=True,
     )

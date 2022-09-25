@@ -134,6 +134,7 @@ def export_cstr_ocp(
     ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
     ocp.solver_options.hessian_approx = "EXACT" if rrlb else "GAUSS_NEWTON"
     # ocp.solver_options.integrator_type = "ERK"
+    ocp.solver_options.integrator_type = "DISCRETE"
     ocp.solver_options.nlp_solver_type = "SQP_RTI"
 
     return ocp

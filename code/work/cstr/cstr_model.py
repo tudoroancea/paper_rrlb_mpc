@@ -19,7 +19,7 @@ xr3 = np.array([2.97496989, 0.95384459, 101.14965441, 95.19386292])
 ur3 = np.array([12.980148, -5162.95653026])
 
 
-def export_cstr_model(dt: float):
+def export_cstr_model(dt: float, rk4_nodes: int = 6):
     c_A = SX.sym("c_A")
     c_B = SX.sym("c_B")
     theta = SX.sym("theta")
@@ -72,19 +72,20 @@ def export_cstr_model(dt: float):
             )
         ],
     )
-    k1 = f_cont(x, u)
-    k2 = f_cont(x + dt / 2 * k1, u)
-    k3 = f_cont(x + dt / 2 * k2, u)
-    k4 = f_cont(x + dt * k3, u)
-    xf = x + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+    new_x = x
+    for j in range(rk4_nodes):
+        k1 = f_cont(new_x, u)
+        k2 = f_cont(new_x + dt / 2 * k1, u)
+        k3 = f_cont(new_x + dt / 2 * k2, u)
+        k4 = f_cont(new_x + dt * k3, u)
+        new_x += dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
 
     model = AcadosModel()
     model.f_expl_expr = f_cont(x, u)
-    model.disc_dyn_expr = xf
+    model.disc_dyn_expr = new_x
     model.x = x
     model.xdot = xdot
     model.u = u
-    model.p = []
     model.name = "cstr"
 
     return model
