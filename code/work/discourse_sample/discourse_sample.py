@@ -103,9 +103,9 @@ def export_cstr_ocp(
     ocp.solver_options.tf = dt * N
 
     nx = ocp.model.x.size()[0]
-    ocp.dims.nx = nx
+    # ocp.dims.nx = nx
     nu = ocp.model.u.size()[0]
-    ocp.dims.nu = nu
+    # ocp.dims.nu = nu
     x = ocp.model.x
     u = ocp.model.u
 
@@ -140,6 +140,9 @@ def export_cstr_ocp(
     ocp.constraints.lbx = d_x[:nx]
     ocp.constraints.ubx = d_x[nx:]
     ocp.constraints.idxbx = np.arange(nx)
+    ocp.constraints.lbx_e = d_x[:nx]
+    ocp.constraints.ubx_e = d_x[nx:]
+    ocp.constraints.idxbx_e = np.arange(nx)
     ocp.constraints.lbu = d_u[:nu]
     ocp.constraints.ubu = d_u[nu:]
     ocp.constraints.idxbu = np.arange(nu)
@@ -150,6 +153,7 @@ def export_cstr_ocp(
     ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
     # ocp.solver_options.integrator_type = "ERK"
     ocp.solver_options.integrator_type = "DISCRETE"
+    ocp.solver_options.print_level = 0
     ocp.solver_options.nlp_solver_type = "SQP_RTI"
 
     return ocp
@@ -167,7 +171,10 @@ def run_closed_loop_simulation(
         ocp, json_file="acados_ocp_" + ocp.model.name + ".json"
     )
     acados_sim_solver = AcadosSimSolver(
-        ocp, json_file="acados_sim_" + ocp.model.name + ".json"
+        ocp,
+        json_file="acados_ocp_" + ocp.model.name + ".json",
+        # generate=False,
+        # build=False,
     )
 
     Nsim = 350
