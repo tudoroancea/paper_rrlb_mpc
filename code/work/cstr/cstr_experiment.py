@@ -13,7 +13,7 @@ def run_closed_loop_simulation(
     ur: np.ndarray = ur1,
     rrlb: bool = True,
 ):
-    ocp = export_cstr_ocp(dt=dt, N=N, x0=x0, xr=xr, ur=ur, rrlb=rrlb)
+    ocp = export_cstr_ocp(dt=dt, N=N, x0=x0, x_ref=xr, u_ref=ur, rrlb=rrlb)
     acados_ocp_solver = AcadosOcpSolver(
         ocp, json_file="acados_ocp_" + ocp.model.name + ".json"
     )
@@ -36,7 +36,7 @@ def run_closed_loop_simulation(
         acados_ocp_solver.set(0, "lbx", xcurrent)
         acados_ocp_solver.set(0, "ubx", xcurrent)
         status = acados_ocp_solver.solve()
-
+        acados_ocp_solver.print_statistics()
         if status != 0:
             raise Exception(
                 "acados ocp solver returned status {}. Exiting.".format(status)

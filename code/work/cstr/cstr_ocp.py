@@ -12,8 +12,8 @@ def export_cstr_ocp(
     dt: float = 20 / 3600,
     N: int = 100,
     x0: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]),
-    xr: np.ndarray = xr1,
-    ur: np.ndarray = ur1,
+    x_ref: np.ndarray = xr1,
+    u_ref: np.ndarray = ur1,
     rrlb: bool = True,
 ):
     ocp = AcadosOcp()
@@ -23,8 +23,8 @@ def export_cstr_ocp(
 
     nx = ocp.model.x.size()[0]
     nu = ocp.model.u.size()[0]
-    # ny = nx + nu
-    # ny_e = nx
+    ny = nx + nu
+    ny_e = nx
     x = ocp.model.x
     u = ocp.model.u
 
@@ -41,9 +41,9 @@ def export_cstr_ocp(
     # compute rrlb functions
     if rrlb:
         # compute the relaxation parameter delta
-        d_x_tilde = d_x - C_x @ xr
+        d_x_tilde = d_x - C_x @ x_ref
         delta_x = np.min(np.abs(d_x_tilde))
-        d_u_tilde = d_u - C_u @ ur
+        d_u_tilde = d_u - C_u @ u_ref
         delta_u = np.min(np.abs(d_u_tilde))
         delta = 0.5 * np.min([delta_x, delta_u])
 
@@ -68,7 +68,7 @@ def export_cstr_ocp(
         # assemble the RRLB function B_x
         B_x = Function("B_x", [x], [dot(w_x, vertcat(*tpr))])
         hess_B_x = Function("hess_B_x", [x], [hessian(B_x(x), x)[0]])
-        M_x = hess_B_x(xr).full()
+        M_x = hess_B_x(x_ref).full()
 
         # compute the individual functions B_u_i
         tpr = []
@@ -83,7 +83,7 @@ def export_cstr_ocp(
         # assemble the RRLB function B_u
         B_u = Function("B_u", [u], [dot(w_u, vertcat(*tpr))])
         hess_B_u = Function("hess_B_u", [u], [hessian(B_u(u), u)[0]])
-        M_u = hess_B_u(ur).full()
+        M_u = hess_B_u(u_ref).full()
 
     else:
         B_x = None
@@ -92,25 +92,32 @@ def export_cstr_ocp(
         M_u = None
 
     # cost function
-    l = Function("l", [x, u], [bilin(Q, x - xr, x - xr) + bilin(R, u - ur, u - ur)])
     jac_f_x = Function("jac_f_x", [x, u], [jacobian(ocp.model.disc_dyn_expr, x)])
     jac_f_u = Function("jac_f_u", [x, u], [jacobian(ocp.model.disc_dyn_expr, u)])
-    A = np.array(jac_f_x(xr, ur))
-    B = np.array(jac_f_u(xr, ur))
+    A = np.array(jac_f_x(x_ref, u_ref))
+    B = np.array(jac_f_u(x_ref, u_ref))
     if rrlb:
         P = np.array(solve_discrete_are(A, B, Q + epsilon * M_x, R + epsilon * M_u))
-        l_tilde = Function(
-            "l_tilde",
-            [x, u],
-            [l(x, u) + epsilon * B_x(x) + epsilon * B_u(u)],
+        ocp.cost.cost_type = "EXTERNAL"
+        ocp.cost.cost_type_e = "EXTERNAL"
+        ocp.cost.cost_expr_ext_cost = (
+            bilin(Q, x - x_ref, x - x_ref)
+            + bilin(R, u - u_ref, u - u_ref)
+            + B_x(x)
+            + B_u(u)
         )
+        ocp.cost.cost_expr_ext_cost_e = bilin(P, x - x_ref, x - x_ref)
     else:
+        ocp.cost.cost_type = "LINEAR_LS"
+        ocp.cost.cost_type_e = "LINEAR_LS"
+        ocp.cost.W = np.block([[Q, np.zeros((nx, nu))], [np.zeros((nu, nx)), R]])
         P = np.array(solve_discrete_are(A, B, Q, R))
-        l_tilde = None
-
-    F = Function("F", [x], [bilin(P, (x - xr), (x - xr))])
-    ocp.cost.cost_expr = l_tilde if rrlb else l
-    ocp.cost.cost_expr_e = F
+        ocp.cost.W_e = P
+        ocp.cost.Vx = np.vstack((np.eye(nx), np.zeros((nu, nx))))
+        ocp.cost.Vx_e = np.eye(nx)
+        ocp.cost.Vu = np.vstack((np.zeros((nx, nu)), np.eye(nu)))
+        ocp.cost.yref = np.append(x_ref, u_ref)
+        ocp.cost.yref_e = x_ref
 
     # constraints
     ocp.constraints.x0 = x0
@@ -123,8 +130,9 @@ def export_cstr_ocp(
         ocp.constraints.idxbu = np.arange(nu)
 
     # solver options
+    # ocp.solver_options.qp_solver = "FULL_CONDENSING_QPOASES"
     ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
-    ocp.solver_options.hessian_approx = "GAUSS_NEWTON"
+    ocp.solver_options.hessian_approx = "EXACT" if rrlb else "GAUSS_NEWTON"
     # ocp.solver_options.integrator_type = "ERK"
     ocp.solver_options.nlp_solver_type = "SQP_RTI"
 
