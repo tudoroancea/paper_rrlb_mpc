@@ -1,6 +1,5 @@
 # Copyright (c) Tudor Oancea, 2022
-image:
-  - tudoroancea/acados
+image: tudoroancea/acados
 
 tasks:
   - name: Install dependencies
