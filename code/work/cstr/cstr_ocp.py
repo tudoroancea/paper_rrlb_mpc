@@ -22,8 +22,6 @@ def export_cstr_ocp(
 
     nx = ocp.model.x.size()[0]
     nu = ocp.model.u.size()[0]
-    ny = nx + nu
-    ny_e = nx
     x = ocp.model.x
     u = ocp.model.u
 

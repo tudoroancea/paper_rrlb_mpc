@@ -17,6 +17,8 @@ def run_closed_loop_simulation(
     ur: np.ndarray = ur1,
     rrlb: bool = True,
     show_plot: bool = True,
+    plot_filename: str = "",
+    verbosity: int = 0,
 ) -> tuple[np.ndarray, np.ndarray, int]:
     ocp = export_cstr_ocp(dt=dt, N=N, x0=x0, x_ref=xr, u_ref=ur, rrlb=rrlb)
     f_disc = Function("f_disc", [ocp.model.x, ocp.model.u], [ocp.model.disc_dyn_expr])
@@ -45,7 +47,6 @@ def run_closed_loop_simulation(
         acados_ocp_solver.set(0, "lbx", xcurrent)
         acados_ocp_solver.set(0, "ubx", xcurrent)
         status = acados_ocp_solver.solve()
-        acados_ocp_solver.print_statistics()
         if status != 0:
             raise Exception(
                 "acados ocp solver returned status {}. Exiting.".format(status)
@@ -73,7 +74,7 @@ def run_closed_loop_simulation(
         x_sim,
         u_sim,
         dt * 3600,
-        # file_name="cstr_closed_loop_simulation",
+        file_name=plot_filename,
         show=show_plot,
     )
 
