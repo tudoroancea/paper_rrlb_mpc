@@ -1,8 +1,12 @@
 import numpy as np
+from acados_template import AcadosOcpSolver
+from casadi import Function
+
 from cstr_model import *
 from cstr_ocp import *
 from cstr_plot import *
-from acados_template import AcadosOcpSolver, AcadosSimSolver
+
+__all__ = ["run_closed_loop_simulation"]
 
 
 def run_closed_loop_simulation(
@@ -12,13 +16,12 @@ def run_closed_loop_simulation(
     xr: np.ndarray = xr1,
     ur: np.ndarray = ur1,
     rrlb: bool = True,
-):
+    show_plot: bool = True,
+) -> tuple[np.ndarray, np.ndarray, int]:
     ocp = export_cstr_ocp(dt=dt, N=N, x0=x0, x_ref=xr, u_ref=ur, rrlb=rrlb)
+    f_disc = Function("f_disc", [ocp.model.x, ocp.model.u], [ocp.model.disc_dyn_expr])
     acados_ocp_solver = AcadosOcpSolver(
         ocp, json_file="acados_ocp_" + ocp.model.name + ".json"
-    )
-    acados_sim_solver = AcadosSimSolver(
-        ocp, json_file="acados_sim_" + ocp.model.name + ".json"
     )
 
     Nsim = 350
@@ -27,11 +30,17 @@ def run_closed_loop_simulation(
     x_sim = np.zeros((Nsim + 1, nx))
     u_sim = np.zeros((Nsim, nu))
     x_sim[0, :] = x0
-
     xcurrent = x0
 
     n_convergence = Nsim + 1
     for i in range(Nsim):
+        # define initial guess for the solver
+        xtpr = xcurrent
+        for j in range(N):
+            acados_ocp_solver.set(j, "x", xtpr)
+            acados_ocp_solver.set(j, "u", ur)
+            xtpr = f_disc(xtpr, ur).full().flatten()
+
         # solve ocp
         acados_ocp_solver.set(0, "lbx", xcurrent)
         acados_ocp_solver.set(0, "ubx", xcurrent)
@@ -44,17 +53,8 @@ def run_closed_loop_simulation(
 
         u_sim[i, :] = acados_ocp_solver.get(0, "u")
 
-        # simulate system
-        acados_sim_solver.set("x", xcurrent)
-        acados_sim_solver.set("u", u_sim[i, :])
-        status = acados_sim_solver.solve()
-        if status != 0:
-            raise Exception(
-                "acados sim solver returned status {}. Exiting.".format(status)
-            )
-
         # update state
-        xcurrent = acados_sim_solver.get("x")
+        xcurrent = f_disc(xcurrent, u_sim[i, :]).full().flatten()
         x_sim[i + 1, :] = xcurrent
 
         # check if there is convergence in relative norm
@@ -74,7 +74,7 @@ def run_closed_loop_simulation(
         u_sim,
         dt * 3600,
         # file_name="cstr_closed_loop_simulation",
-        show=True,
+        show=show_plot,
     )
 
     return x_sim, u_sim, n_convergence

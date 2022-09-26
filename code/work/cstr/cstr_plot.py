@@ -14,6 +14,10 @@ def plot_cstr(
     dt: float,
     file_name: str = "",
     show: bool = True,
+    lbx: np.ndarray = np.array([10.0, 10.0, 150.0, 150.0]),
+    ubx: np.ndarray = np.array([0.0, 0.0, 98.0, 92.0]),
+    lbu: np.ndarray = np.array([35.0, 0.0]),
+    ubu: np.ndarray = np.array([3.0, -9000.0]),
 ):
     # solid line: real data
     # dashed line: reference values
@@ -28,32 +32,33 @@ def plot_cstr(
     plt.plot(t_x, x_sim[:, 1], "b-")
     plt.plot(t_x, np.ones_like(t_x) * x_ref[0], "r--")
     plt.plot(t_x, np.ones_like(t_x) * x_ref[1], "b--")
-    plt.plot(t_x, np.ones_like(t_x) * ocp.dims.nx[0]["lbx"], "r:")
-    plt.plot(t_x, np.ones_like(t_x) * ocp.dims.nx[1]["lbx"], "b:")
-    plt.plot(t_x, np.ones_like(t_x) * ocp.dims.nx[0]["ubx"], "r:")
-    plt.plot(t_x, np.ones_like(t_x) * ocp.dims.nx[1]["ubx"], "b:")
+    plt.plot(t_x, np.ones_like(t_x) * lbx[0], "r:")
+    plt.plot(t_x, np.ones_like(t_x) * lbx[1], "b:")
+    plt.plot(t_x, np.ones_like(t_x) * ubx[0], "r:")
+    plt.plot(t_x, np.ones_like(t_x) * ubx[1], "b:")
 
     plt.subplot(4, 1, 2)
     plt.plot(t_x, x_sim[:, 2], "r-")
     plt.plot(t_x, x_sim[:, 3], "b-")
     plt.plot(t_x, np.ones_like(t_x) * x_ref[2], "r--")
     plt.plot(t_x, np.ones_like(t_x) * x_ref[3], "b--")
-    plt.plot(t_x, np.ones_like(t_x) * ocp.dims.nx[2]["lbx"], "r:")
-    plt.plot(t_x, np.ones_like(t_x) * ocp.dims.nx[3]["lbx"], "b:")
-    plt.plot(t_x, np.ones_like(t_x) * ocp.dims.nx[2]["ubx"], "r:")
-    plt.plot(t_x, np.ones_like(t_x) * ocp.dims.nx[3]["ubx"], "b:")
+    plt.plot(t_x, np.ones_like(t_x) * lbx[2], "r:")
+    plt.plot(t_x, np.ones_like(t_x) * lbx[3], "b:")
+    plt.plot(t_x, np.ones_like(t_x) * ubx[2], "r:")
+    plt.plot(t_x, np.ones_like(t_x) * ubx[3], "b:")
+    # plt.ylim(())
 
     plt.subplot(4, 1, 3)
     plt.plot(t_u, u_sim[:, 0], "r-")
     plt.plot(t_u, np.ones_like(t_u) * u_ref[0], "r--")
-    plt.plot(t_u, np.ones_like(t_u) * ocp.dims.nu[0]["lbu"], "r:")
-    plt.plot(t_u, np.ones_like(t_u) * ocp.dims.nu[0]["ubu"], "r:")
+    plt.plot(t_u, np.ones_like(t_u) * lbu[0], "r:")
+    plt.plot(t_u, np.ones_like(t_u) * ubu[0], "r:")
 
     plt.subplot(4, 1, 4)
     plt.plot(t_u, u_sim[:, 1], "b-")
     plt.plot(t_u, np.ones_like(t_u) * u_ref[1], "b--")
-    plt.plot(t_u, np.ones_like(t_u) * ocp.dims.nu[1]["lbu"], "b:")
-    plt.plot(t_u, np.ones_like(t_u) * ocp.dims.nu[1]["ubu"], "b:")
+    plt.plot(t_u, np.ones_like(t_u) * lbu[1], "b:")
+    plt.plot(t_u, np.ones_like(t_u) * ubu[1], "b:")
 
     plt.tight_layout()
     plt.grid()

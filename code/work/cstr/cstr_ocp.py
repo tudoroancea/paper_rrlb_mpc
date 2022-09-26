@@ -1,4 +1,3 @@
-import numpy as np
 from acados_template import AcadosOcp
 from casadi import *
 from scipy.linalg import solve_discrete_are
@@ -36,7 +35,7 @@ def export_cstr_ocp(
     C_u = np.vstack((np.eye(nu), -np.eye(nu)))
     d_u = np.array([35.0, 0.0, -3.0, 9000.0])
     q_u = 2 * nu
-    epsilon = 1.0e-3
+    epsilon = 100.0
 
     # compute rrlb functions
     if rrlb:
@@ -67,6 +66,8 @@ def export_cstr_ocp(
 
         # assemble the RRLB function B_x
         B_x = Function("B_x", [x], [dot(w_x, vertcat(*tpr))])
+        grad_B_x = Function("grad_B_x", [x], [jacobian(B_x(x), x)])
+        assert np.allclose(grad_B_x(x_ref), np.zeros(nx))
         hess_B_x = Function("hess_B_x", [x], [hessian(B_x(x), x)[0]])
         M_x = hess_B_x(x_ref).full()
 
@@ -82,6 +83,8 @@ def export_cstr_ocp(
 
         # assemble the RRLB function B_u
         B_u = Function("B_u", [u], [dot(w_u, vertcat(*tpr))])
+        grad_B_u = Function("grad_B_u", [u], [jacobian(B_u(u), u)])
+        assert np.allclose(grad_B_u(u_ref), np.zeros(nu))
         hess_B_u = Function("hess_B_u", [u], [hessian(B_u(u), u)[0]])
         M_u = hess_B_u(u_ref).full()
 
@@ -100,13 +103,13 @@ def export_cstr_ocp(
         P = np.array(solve_discrete_are(A, B, Q + epsilon * M_x, R + epsilon * M_u))
         ocp.cost.cost_type = "EXTERNAL"
         ocp.cost.cost_type_e = "EXTERNAL"
-        ocp.cost.cost_expr_ext_cost = (
+        ocp.model.cost_expr_ext_cost = (
             bilin(Q, x - x_ref, x - x_ref)
             + bilin(R, u - u_ref, u - u_ref)
-            + B_x(x)
-            + B_u(u)
+            + epsilon * B_x(x)
+            + epsilon * B_u(u)
         )
-        ocp.cost.cost_expr_ext_cost_e = bilin(P, x - x_ref, x - x_ref)
+        ocp.model.cost_expr_ext_cost_e = bilin(P, x - x_ref, x - x_ref)
     else:
         ocp.cost.cost_type = "LINEAR_LS"
         ocp.cost.cost_type_e = "LINEAR_LS"
@@ -122,11 +125,14 @@ def export_cstr_ocp(
     # constraints
     ocp.constraints.x0 = x0
     if not rrlb:
-        ocp.constraints.lbx = d_x[:nx]
-        ocp.constraints.ubx = d_x[nx:]
+        ocp.constraints.ubx = d_x[:nx]
+        ocp.constraints.lbx = -d_x[nx:]
         ocp.constraints.idxbx = np.arange(nx)
-        ocp.constraints.lbu = d_u[:nu]
-        ocp.constraints.ubu = d_u[nu:]
+        ocp.constraints.ubx_e = d_x[:nx]
+        ocp.constraints.lbx_e = -d_x[nx:]
+        ocp.constraints.idxbx_e = np.arange(nx)
+        ocp.constraints.ubu = d_u[:nu]
+        ocp.constraints.lbu = -d_u[nu:]
         ocp.constraints.idxbu = np.arange(nu)
 
     # solver options
@@ -136,5 +142,6 @@ def export_cstr_ocp(
     # ocp.solver_options.integrator_type = "ERK"
     ocp.solver_options.integrator_type = "DISCRETE"
     ocp.solver_options.nlp_solver_type = "SQP_RTI"
+    ocp.solver_options.print_level = 0
 
     return ocp

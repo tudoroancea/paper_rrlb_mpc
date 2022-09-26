@@ -137,14 +137,14 @@ def export_cstr_ocp(
 
     # constraints
     ocp.constraints.x0 = x0
-    ocp.constraints.lbx = d_x[:nx]
-    ocp.constraints.ubx = d_x[nx:]
+    ocp.constraints.ubx = d_x[:nx]
+    ocp.constraints.lbx = -d_x[nx:]
     ocp.constraints.idxbx = np.arange(nx)
-    ocp.constraints.lbx_e = d_x[:nx]
-    ocp.constraints.ubx_e = d_x[nx:]
+    ocp.constraints.ubx_e = d_x[:nx]
+    ocp.constraints.lbx_e = -d_x[nx:]
     ocp.constraints.idxbx_e = np.arange(nx)
-    ocp.constraints.lbu = d_u[:nu]
-    ocp.constraints.ubu = d_u[nu:]
+    ocp.constraints.ubu = d_u[:nu]
+    ocp.constraints.lbu = -d_u[nu:]
     ocp.constraints.idxbu = np.arange(nu)
 
     # solver options
@@ -214,7 +214,7 @@ def run_closed_loop_simulation(
 
         # update state
         # xcurrent = acados_sim_solver.get("x")
-        xcurrent = np.array(f_disc(xcurrent, u_sim[i, :]))
+        xcurrent = np.array(f_disc(xcurrent, u_sim[i, :])).ravel()
         x_sim[i + 1, :] = xcurrent
 
         # check if there is convergence in relative norm
