@@ -167,15 +167,16 @@ def run_closed_loop_simulation(
     ur: np.ndarray = ur1,
 ):
     ocp = export_cstr_ocp(dt=dt, N=N, x0=x0, x_ref=xr, u_ref=ur)
+    f_disc = Function("f_disc", [ocp.model.x, ocp.model.u], [ocp.model.disc_dyn_expr])
     acados_ocp_solver = AcadosOcpSolver(
         ocp, json_file="acados_ocp_" + ocp.model.name + ".json"
     )
-    acados_sim_solver = AcadosSimSolver(
-        ocp,
-        json_file="acados_ocp_" + ocp.model.name + ".json",
-        # generate=False,
-        # build=False,
-    )
+    # acados_sim_solver = AcadosSimSolver(
+    #     ocp,
+    #     json_file="acados_ocp_" + ocp.model.name + ".json",
+    #     # generate=False,
+    #     # build=False,
+    # )
 
     Nsim = 350
     nx = ocp.model.x.size()[0]
@@ -195,22 +196,25 @@ def run_closed_loop_simulation(
         acados_ocp_solver.print_statistics()
         if status != 0:
             raise Exception(
-                "acados ocp solver returned status {}. Exiting.".format(status)
+                "acados ocp solver returned status {} at iteration {}. Exiting.".format(
+                    status, i
+                )
             )
 
         u_sim[i, :] = acados_ocp_solver.get(0, "u")
 
         # simulate system
-        acados_sim_solver.set("x", xcurrent)
-        acados_sim_solver.set("u", u_sim[i, :])
-        status = acados_sim_solver.solve()
-        if status != 0:
-            raise Exception(
-                "acados sim solver returned status {}. Exiting.".format(status)
-            )
+        # acados_sim_solver.set("x", xcurrent)
+        # acados_sim_solver.set("u", u_sim[i, :])
+        # status = acados_sim_solver.solve()
+        # if status != 0:
+        #     raise Exception(
+        #         "acados sim solver returned status {}. Exiting.".format(status)
+        #     )
 
         # update state
-        xcurrent = acados_sim_solver.get("x")
+        # xcurrent = acados_sim_solver.get("x")
+        xcurrent = np.array(f_disc(xcurrent, u_sim[i, :]))
         x_sim[i + 1, :] = xcurrent
 
         # check if there is convergence in relative norm
