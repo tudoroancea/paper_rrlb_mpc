@@ -1,6 +1,9 @@
+from typing import Union
+
 import numpy as np
 from acados_template import AcadosOcpSolver
 from casadi import Function
+from scipy.linalg import solve_discrete_are
 
 from cstr_model import *
 from cstr_ocp import *
@@ -19,9 +22,26 @@ def run_closed_loop_simulation(
     show_plot: bool = True,
     plot_filename: str = "",
     verbosity: int = 0,
-) -> tuple[np.ndarray, np.ndarray, int]:
-    ocp = export_cstr_ocp(dt=dt, N=N, x0=x0, x_ref=xr, u_ref=ur, rrlb=rrlb)
+) -> dict[str, Union[float, bool, np.ndarray]]:
+    ocp, stuff = export_cstr_ocp(dt=dt, N=N, x0=x0, x_ref=xr, u_ref=ur, rrlb=rrlb)
+    if rrlb:
+        rel_discrepancy = np.linalg.norm(x0 - xr) / np.linalg.norm(xr)
+        epsilon = np.exp(rel_discrepancy) / 100.0
+        print(f"epsilon = {epsilon}")
+        P = solve_discrete_are(
+            stuff["A"],
+            stuff["B"],
+            stuff["Q"] + epsilon * stuff["M_x"],
+            stuff["R"] + epsilon * stuff["M_u"],
+        )
+        params = np.append(epsilon, P.ravel("F"))
+        ocp.parameter_values = params
+    else:
+        epsilon = None
+        P = None
+
     f_disc = Function("f_disc", [ocp.model.x, ocp.model.u], [ocp.model.disc_dyn_expr])
+
     acados_ocp_solver = AcadosOcpSolver(
         ocp, json_file="acados_ocp_" + ocp.model.name + ".json"
     )
@@ -34,6 +54,8 @@ def run_closed_loop_simulation(
     x_sim[0, :] = x0
     xcurrent = x0
 
+    time_tot = np.ndarray((Nsim, 1))
+
     n_convergence = Nsim + 1
     for i in range(Nsim):
         # define initial guess for the solver
@@ -43,6 +65,18 @@ def run_closed_loop_simulation(
             acados_ocp_solver.set(j, "u", ur)
             xtpr = f_disc(xtpr, ur).full().flatten()
 
+        # set parameters
+        if rrlb:
+            P = solve_discrete_are(
+                stuff["A"],
+                stuff["B"],
+                stuff["Q"] + epsilon * stuff["M_x"],
+                stuff["R"] + epsilon * stuff["M_u"],
+            )
+            params = np.append(epsilon, P.ravel("F"))
+            for j in range(N):
+                acados_ocp_solver.set(j, "p", params)
+
         # solve ocp
         acados_ocp_solver.set(0, "lbx", xcurrent)
         acados_ocp_solver.set(0, "ubx", xcurrent)
@@ -51,20 +85,26 @@ def run_closed_loop_simulation(
             raise Exception(
                 "acados ocp solver returned status {}. Exiting.".format(status)
             )
-
         u_sim[i, :] = acados_ocp_solver.get(0, "u")
+
+        # get statistics
+        time_tot[i] = acados_ocp_solver.get_stats("time_tot")
 
         # update state
         xcurrent = f_disc(xcurrent, u_sim[i, :]).full().flatten()
         x_sim[i + 1, :] = xcurrent
 
         # check if there is convergence in relative norm
-        if np.linalg.norm(x_sim[i + 1, :] - xr) / np.linalg.norm(xr) < 1e-3:
+        rel_discrepancy = np.linalg.norm(xcurrent - xr) / np.linalg.norm(xr)
+        epsilon = np.exp(rel_discrepancy) / 100.0
+        print(f"epsilon = {epsilon}")
+        if rel_discrepancy < 1e-3:
             n_convergence = i + 1
             break
 
     x_sim = x_sim[: n_convergence + 1, :]
     u_sim = u_sim[:n_convergence, :]
+    time_tot = time_tot[:n_convergence, :]
 
     # plot data
     plot_cstr(
@@ -78,4 +118,9 @@ def run_closed_loop_simulation(
         show=show_plot,
     )
 
-    return x_sim, u_sim, n_convergence
+    return {
+        "x_sim": x_sim,
+        "u_sim": u_sim,
+        "n_convergence": n_convergence,
+        "time_tot": time_tot,
+    }

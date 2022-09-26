@@ -33,10 +33,11 @@ def export_cstr_ocp(
     C_u = np.vstack((np.eye(nu), -np.eye(nu)))
     d_u = np.array([35.0, 0.0, -3.0, 9000.0])
     q_u = 2 * nu
-    epsilon = 100.0
+    # epsilon = 100.0
 
     # compute rrlb functions
     if rrlb:
+        epsilon = SX.sym("epsilon")
         # compute the relaxation parameter delta
         d_x_tilde = d_x - C_x @ x_ref
         delta_x = np.min(np.abs(d_x_tilde))
@@ -91,6 +92,7 @@ def export_cstr_ocp(
         B_u = None
         M_x = None
         M_u = None
+        epsilon = None
 
     # cost function
     jac_f_x = Function("jac_f_x", [x, u], [jacobian(ocp.model.disc_dyn_expr, x)])
@@ -98,27 +100,35 @@ def export_cstr_ocp(
     A = np.array(jac_f_x(x_ref, u_ref))
     B = np.array(jac_f_u(x_ref, u_ref))
     if rrlb:
-        P = np.array(solve_discrete_are(A, B, Q + epsilon * M_x, R + epsilon * M_u))
+        P = SX.sym("P", nx, nx)
+        ocp.model.p = vertcat(epsilon, reshape(P, nx * nx, 1))
         ocp.cost.cost_type = "EXTERNAL"
-        ocp.cost.cost_type_e = "EXTERNAL"
+        # ocp.model.p = epsilon
         ocp.model.cost_expr_ext_cost = (
             bilin(Q, x - x_ref, x - x_ref)
             + bilin(R, u - u_ref, u - u_ref)
             + epsilon * B_x(x)
             + epsilon * B_u(u)
         )
+
+        ocp.cost.cost_type_e = "EXTERNAL"
+        # P = np.array(solve_discrete_are(A, B, Q + epsilon * M_x, R + epsilon * M_u))
+        # ocp.cost.Vx_e = np.eye(nx)
+        # ocp.cost.W_e = P
+        # ocp.cost.yref_e = x_ref
         ocp.model.cost_expr_ext_cost_e = bilin(P, x - x_ref, x - x_ref)
     else:
         ocp.cost.cost_type = "LINEAR_LS"
-        ocp.cost.cost_type_e = "LINEAR_LS"
         ocp.cost.W = np.block([[Q, np.zeros((nx, nu))], [np.zeros((nu, nx)), R]])
-        P = np.array(solve_discrete_are(A, B, Q, R))
-        ocp.cost.W_e = P
         ocp.cost.Vx = np.vstack((np.eye(nx), np.zeros((nu, nx))))
-        ocp.cost.Vx_e = np.eye(nx)
         ocp.cost.Vu = np.vstack((np.zeros((nx, nu)), np.eye(nu)))
         ocp.cost.yref = np.append(x_ref, u_ref)
-        ocp.cost.yref_e = x_ref
+
+        # ocp.cost.cost_type_e = "LINEAR_LS"
+        # P = np.array(solve_discrete_are(A, B, Q, R))
+        # ocp.cost.W_e = P
+        # ocp.cost.Vx_e = np.eye(nx)
+        # ocp.cost.yref_e = x_ref
 
     # constraints
     ocp.constraints.x0 = x0
@@ -142,4 +152,11 @@ def export_cstr_ocp(
     ocp.solver_options.nlp_solver_type = "SQP_RTI"
     ocp.solver_options.print_level = 0
 
-    return ocp
+    return ocp, {
+        "A": A,
+        "B": B,
+        "Q": Q,
+        "R": R,
+        "M_x": M_x,
+        "M_u": M_u,
+    }

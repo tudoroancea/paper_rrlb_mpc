@@ -94,6 +94,15 @@ def plot_cstr(
     plt.plot(t_u, np.ones_like(t_u) * lbu[0], "r:")
     plt.plot(t_u, np.ones_like(t_u) * ubu[0], "r:")
     plt.ylabel("scaled feed inflow [1/h]")
+    plt.legend(
+        [
+            r"$u_1$",
+            r"$u_{1ref}$",
+            r"$u_{1,lb}$",
+            r"$u_{1,ub}$",
+        ],
+        loc="upper right",
+    )
 
     plt.subplot(4, 1, 4)
     plt.plot(t_u, u_sim[:, 1], "b-")
@@ -102,6 +111,15 @@ def plot_cstr(
     plt.plot(t_u, np.ones_like(t_u) * ubu[1], "b:")
     plt.ylabel("heat removal rate [kJ/h]")
     plt.xlabel("time [s]")
+    plt.legend(
+        [
+            r"$u_2$",
+            r"$u_{2ref}$",
+            r"$u_{2,lb}$",
+            r"$u_{2,ub}$",
+        ],
+        loc="upper right",
+    )
 
     plt.tight_layout()
     plt.grid()
