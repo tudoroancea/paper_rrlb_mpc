@@ -7,4 +7,5 @@ __pycache__
 *.egg
 latex/main.*
 !latex/main.pdf
-!latex/main.texacados_problem_formulation.pdf
+!latex/main.tex
+resources

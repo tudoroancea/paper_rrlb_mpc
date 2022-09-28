@@ -2,7 +2,33 @@ import numpy as np
 from acados_template import AcadosModel
 from casadi import SX, vertcat, exp, Function
 
-__all__ = ["export_cstr_model", "ur1", "ur2", "ur3", "xr1", "xr2", "xr3"]
+__all__ = [
+    "export_cstr_model",
+    "ur1",
+    "ur2",
+    "ur3",
+    "xr1",
+    "xr2",
+    "xr3",
+    "k_10",
+    "k_20",
+    "k_30",
+    "E_1",
+    "E_2",
+    "E_3",
+    "H_1",
+    "H_2",
+    "H_3",
+    "rho",
+    "C_p",
+    "k_w",
+    "A_R",
+    "V_R",
+    "m_K",
+    "C_PK",
+    "c_A0",
+    "theta_0",
+]
 
 xr1 = np.array(
     [
@@ -17,6 +43,26 @@ xr2 = np.array([2.7151681, 1.02349152, 105.50585058, 100.8920758])
 ur2 = np.array([13.66640639, -3999.58908628])
 xr3 = np.array([2.97496989, 0.95384459, 101.14965441, 95.19386292])
 ur3 = np.array([12.980148, -5162.95653026])
+
+# model constants
+k_10 = 1.287e12  # [h^-1]
+k_20 = 1.287e12  # [h^-1]
+k_30 = 9.043e9  # [h^-1]
+E_1 = -9758.3  # [1]
+E_2 = -9758.3  # [1]
+E_3 = -8560.0  # [1]
+H_1 = 4.2  # [kJ.mol^-1]
+H_2 = -11.0  # [kJ.mol^-1]
+H_3 = -41.85  # [kJ.mol^-1]
+rho = 0.9342  # [kg.L^-1]
+C_p = 3.01  # [kJ/(kg.K)]
+k_w = 4032.0  # [kJ/(h.m^2.K)]
+A_R = 0.215  # [m^2]
+V_R = 10.0  # [l]
+m_K = 5.0  # [kg]
+C_PK = 2.0  # [kJ/(kg.K)]
+c_A0 = 5.1  # [mol/l]
+theta_0 = 104.9  # [°C]
 
 
 def export_cstr_model(dt: float, rk4_nodes: int = 6) -> AcadosModel:
@@ -43,25 +89,6 @@ def export_cstr_model(dt: float, rk4_nodes: int = 6) -> AcadosModel:
     theta_dot = SX.sym("theta_dot")
     theta_K_dot = SX.sym("theta_K_dot")
     xdot = vertcat(c_A_dot, c_B_dot, theta_dot, theta_K_dot)
-
-    k_10 = 1.287e12  # [h^-1]
-    k_20 = 1.287e12  # [h^-1]
-    k_30 = 9.043e9  # [h^-1]
-    E_1 = -9758.3  # [1]
-    E_2 = -9758.3  # [1]
-    E_3 = -8560.0  # [1]
-    H_1 = 4.2  # [kJ.mol^-1]
-    H_2 = -11.0  # [kJ.mol^-1]
-    H_3 = -41.85  # [kJ.mol^-1]
-    rho = 0.9342  # [kg.L^-1]
-    C_p = 3.01  # [kJ/(kg.K)]
-    k_w = 4032.0  # [kJ/(h.m^2.K)]
-    A_R = 0.215  # [m^2]
-    V_R = 10.0  # [l]
-    m_K = 5.0  # [kg]
-    C_PK = 2.0  # [kJ/(kg.K)]
-    c_A0 = 5.1  # [mol/l]
-    theta_0 = 104.9  # [°C]
 
     k_1 = k_10 * exp(E_1 / (x[2] + 273.15))
     k_2 = k_20 * exp(E_2 / (x[2] + 273.15))

@@ -6,6 +6,18 @@ from cstr_model import *
 
 __all__ = ["export_cstr_ocp"]
 
+# ocp constants
+nx = 4
+nu = 2
+Q = np.diag([0.2, 1.0, 0.5, 0.2])
+R = np.diag([0.5, 5.0e-7])
+C_x = np.vstack((np.eye(nx), -np.eye(nx)))
+d_x = np.array([10.0, 10.0, 150.0, 150.0, 0.0, 0.0, -98.0, -92.0])
+q_x = 2 * nx
+C_u = np.vstack((np.eye(nu), -np.eye(nu)))
+d_u = np.array([35.0, 0.0, -3.0, 9000.0])
+q_u = 2 * nu
+
 
 def export_cstr_ocp(
     dt: float = 20 / 3600,
@@ -38,19 +50,8 @@ def export_cstr_ocp(
     ocp.dims.N = N
     ocp.solver_options.tf = dt * N
 
-    nx = ocp.model.x.size()[0]
-    nu = ocp.model.u.size()[0]
     x = ocp.model.x
     u = ocp.model.u
-
-    Q = np.diag([0.2, 1.0, 0.5, 0.2])
-    R = np.diag([0.5, 5.0e-7])
-    C_x = np.vstack((np.eye(nx), -np.eye(nx)))
-    d_x = np.array([10.0, 10.0, 150.0, 150.0, 0.0, 0.0, -98.0, -92.0])
-    q_x = 2 * nx
-    C_u = np.vstack((np.eye(nu), -np.eye(nu)))
-    d_u = np.array([35.0, 0.0, -3.0, 9000.0])
-    q_u = 2 * nu
 
     # compute rrlb functions ====================================================
     if rrlb:
