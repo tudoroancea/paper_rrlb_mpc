@@ -19,7 +19,17 @@ xr3 = np.array([2.97496989, 0.95384459, 101.14965441, 95.19386292])
 ur3 = np.array([12.980148, -5162.95653026])
 
 
-def export_cstr_model(dt: float, rk4_nodes: int = 6):
+def export_cstr_model(dt: float, rk4_nodes: int = 6) -> AcadosModel:
+    """
+    Create an AcadosModel for the CSTR model.
+
+    :param dt: sampling time
+    :type dt: float
+    :param rk4_nodes: number of nodes for the Runge-Kutta 4 integrator
+    :type rk4_nodes: int
+
+    :return: the AcadosModel instance
+    """
     c_A = SX.sym("c_A")
     c_B = SX.sym("c_B")
     theta = SX.sym("theta")

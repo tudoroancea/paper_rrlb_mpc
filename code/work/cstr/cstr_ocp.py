@@ -14,7 +14,25 @@ def export_cstr_ocp(
     x_ref: np.ndarray = xr1,
     u_ref: np.ndarray = ur1,
     rrlb: bool = True,
-):
+) -> tuple[AcadosOcp, dict[str, np.ndarray]]:
+    """
+    Export the CSTR OCP for the specified parameters.
+
+    :param dt: sampling time
+    :type dt: float
+    :param N: number of control intervals / horizon length
+    :type N: int
+    :param x0: initial state
+    :type x0: np.ndarray
+    :param x_ref: reference state
+    :type x_ref: np.ndarray
+    :param u_ref: reference control
+    :type u_ref: np.ndarray
+    :param rrlb: whether to use RRLB MPC or not
+    :type rrlb: bool
+
+    :return: the AcadosOcp instace and some useful matrices computed inside (A, B, Q, R, M_x, M_u)
+    """
     ocp = AcadosOcp()
     ocp.model = export_cstr_model(dt=dt)
     ocp.dims.N = N
@@ -33,9 +51,8 @@ def export_cstr_ocp(
     C_u = np.vstack((np.eye(nu), -np.eye(nu)))
     d_u = np.array([35.0, 0.0, -3.0, 9000.0])
     q_u = 2 * nu
-    # epsilon = 100.0
 
-    # compute rrlb functions
+    # compute rrlb functions ====================================================
     if rrlb:
         epsilon = SX.sym("epsilon")
         # compute the relaxation parameter delta
@@ -100,10 +117,8 @@ def export_cstr_ocp(
     A = np.array(jac_f_x(x_ref, u_ref))
     B = np.array(jac_f_u(x_ref, u_ref))
     if rrlb:
-        P = SX.sym("P", nx, nx)
-        ocp.model.p = vertcat(epsilon, reshape(P, nx * nx, 1))
+        # lagrange cost (quadratic costs + RRLB functions)
         ocp.cost.cost_type = "EXTERNAL"
-        # ocp.model.p = epsilon
         ocp.model.cost_expr_ext_cost = (
             bilin(Q, x - x_ref, x - x_ref)
             + bilin(R, u - u_ref, u - u_ref)
@@ -111,24 +126,19 @@ def export_cstr_ocp(
             + epsilon * B_u(u)
         )
 
+        # mayer cost (quadratic costs only)
         ocp.cost.cost_type_e = "EXTERNAL"
-        # P = np.array(solve_discrete_are(A, B, Q + epsilon * M_x, R + epsilon * M_u))
-        # ocp.cost.Vx_e = np.eye(nx)
-        # ocp.cost.W_e = P
-        # ocp.cost.yref_e = x_ref
+        P = SX.sym("P", nx, nx)
         ocp.model.cost_expr_ext_cost_e = bilin(P, x - x_ref, x - x_ref)
+
+        # declare runtime params in ocp model
+        ocp.model.p = vertcat(epsilon, reshape(P, nx * nx, 1))
     else:
         ocp.cost.cost_type = "LINEAR_LS"
         ocp.cost.W = np.block([[Q, np.zeros((nx, nu))], [np.zeros((nu, nx)), R]])
         ocp.cost.Vx = np.vstack((np.eye(nx), np.zeros((nu, nx))))
         ocp.cost.Vu = np.vstack((np.zeros((nx, nu)), np.eye(nu)))
         ocp.cost.yref = np.append(x_ref, u_ref)
-
-        # ocp.cost.cost_type_e = "LINEAR_LS"
-        # P = np.array(solve_discrete_are(A, B, Q, R))
-        # ocp.cost.W_e = P
-        # ocp.cost.Vx_e = np.eye(nx)
-        # ocp.cost.yref_e = x_ref
 
     # constraints
     ocp.constraints.x0 = x0
@@ -144,10 +154,8 @@ def export_cstr_ocp(
         ocp.constraints.idxbu = np.arange(nu)
 
     # solver options
-    # ocp.solver_options.qp_solver = "FULL_CONDENSING_QPOASES"
     ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM"
     ocp.solver_options.hessian_approx = "EXACT" if rrlb else "GAUSS_NEWTON"
-    # ocp.solver_options.integrator_type = "ERK"
     ocp.solver_options.integrator_type = "DISCRETE"
     ocp.solver_options.nlp_solver_type = "SQP_RTI"
     ocp.solver_options.print_level = 0
