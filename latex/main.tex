@@ -1,37 +1,3 @@
-%% This is a skeleton file demonstrating the use of IEEEtran.cls
-%% (requires IEEEtran.cls version 1.8b or later) with an IEEE
-%% journal paper.
-%%
-%% Support sites:
-%% http://www.michaelshell.org/tex/ieeetran/
-%% http://www.ctan.org/pkg/ieeetran
-%% and
-%% http://www.ieee.org/
-
-%%*************************************************************************
-%% Legal Notice:
-%% This code is offered as-is without any warranty either expressed or
-%% implied; without even the implied warranty of MERCHANTABILITY or
-%% FITNESS FOR A PARTICULAR PURPOSE! 
-%% User assumes all risk.
-%% In no event shall the IEEE or any contributor to this code be liable for
-%% any damages or losses, including, but not limited to, incidental,
-%% consequential, or any other damages, resulting from the use or misuse
-%% of any information contained here.
-%%
-%% All comments are the opinions of their respective authors and are not
-%% necessarily endorsed by the IEEE.
-%%
-%% This work is distributed under the LaTeX Project Public License (LPPL)
-%% ( http://www.latex-project.org/ ) version 1.3, and may be freely used,
-%% distributed and modified. A copy of the LPPL, version 1.3, is included
-%% in the base LaTeX documentation of all distributions of LaTeX released
-%% 2003/12/01 or later.
-%% Retain all contribution notices and credits.
-%% ** Modified files should be clearly indicated as such, including  **
-%% ** renaming them and changing author support contact information. **
-%%*************************************************************************
-
 \documentclass[conference]{IEEEtran}
 
 % *** CITATION PACKAGES ***
@@ -40,21 +6,20 @@
 
 % *** MATH PACKAGES ***
 \usepackage{amsmath}
+\usepackage{amssymb,amsmath,amsthm, amsfonts}
 
 % *** PDF, URL AND HYPERLINK PACKAGES ***
 \usepackage{url}
 % correct bad hyphenation here
 \usepackage{graphicx}  % needed to include png, eps figures
 \usepackage{float}  % used to fix location of images i.e. \begin{figure}[H]
-
-\usepackage{enumitem}
-\usepackage{amssymb,amsmath,amsthm, amsfonts}
 \usepackage{hyperref}
-\usepackage[all]{xy} % for diagrams with arrows
-\usepackage{tikz-cd} % for diagrams with arrows
+
+% *** MISCALLENOUS ***
+\usepackage{enumitem}
 \usepackage{graphicx} % to manage images
 
-% Sections (theorems, propositions, lemmas…) =====================================================================================================================
+% Sections (theorems, propositions, lemmas…) ========================================================================================
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
@@ -78,7 +43,7 @@
 
 
 
-% Commands =====================================================================================================================
+% Commands ========================================================================================
 \def\bb#1{\mathbb{#1}}
 \def\cal#1{\mathcal{#1}}
 \def\frak#1{\mathfrak{#1}}
@@ -104,7 +69,7 @@
 \newcommand{\esp}{\mathbb{E}}
 % \P = caracs spéciaux,\S = paragraphe, \L = L barre
 
-% Existe déjà : ker, partie Im, Re, min, max, inf, sup, log, exp, sin, sinh, cos, cosh,, tan lim, liminf, limsup
+% Already exists : ker, partie Im, Re, min, max, inf, sup, log, exp, sin, sinh, cos, cosh,, tan lim, liminf, limsup
 \DeclareMathOperator{\Id}{Id}
 \DeclareMathOperator{\Hom}{Hom}
 \DeclareMathOperator{\Ima}{Im}
@@ -125,20 +90,19 @@
 \DeclareMathOperator{\pgcd}{pgcd}
 \DeclareMathOperator{\pgdc}{pgdc}
 
-% Lois de probabilités
+% Probability stuff
 \DeclareMathOperator{\Geom}{Geom}
 \DeclareMathOperator{\Bin}{Bin}
 \DeclareMathOperator{\Exp}{Exp}
 \DeclareMathOperator{\Ber}{Ber}
 \DeclareMathOperator{\Student}{Student}
 \DeclareMathOperator{\Poi}{Poi}
+
+% Calculus stuff
 \newcommand{\czero}{\calC^0}
 \newcommand{\cone}{\calC^1}
 \newcommand{\ctwo}{\calC^2}
 \newcommand{\cinf}{\calC^{\infty}}
-\newcommand{\bigpeter}[1]{\Big\langle#1\Big\rangle}
-\newcommand{\peter}[1]{\langle#1\rangle}
-\newcommand{\transp}[1]{#1^t}
 \newcommand{\series}[2]{\sum_{#1}^{\infty}#2}
 \newcommand{\intt}[4]{\int_{#1}^{#2}#3\mathrm{d}#4}
 \newcommand{\ddt}[1]{\frac{\mathrm{d}#1}{\mathrm{dt}}}
@@ -159,6 +123,11 @@
 \newcommand{\dzx}{\rmd zx}
 \newcommand{\dxz}{\rmd xz}
 \newcommand{\gtinf}[1]{\underset{#1\to\infty}{\longrightarrow}}
+
+% algebra stuff
+\newcommand{\bigpeter}[1]{\Big\langle#1\Big\rangle}
+\newcommand{\peter}[1]{\langle#1\rangle}
+\newcommand{\transp}[1]{#1^t}
 \newcommand{\sm}[4]{\begin{psmallmatrix}#1&#2\\#3&#4\end{psmallmatrix}}
 \newcommand{\map}[4]{
 	\begin{matrix}
@@ -264,7 +233,7 @@ where $\epsilon$ is the barrier parameter and the new stage and terminal costs a
 
 \subsection{RRLB MPC in the case of linear dynamics}
 
-When we consider the RRLB MPC~\ref{eq:RRLB-NMPC} in the case of linear dynamics $x^+=f(x,u)=Ax+Bu$, we know the two following theorems to be true:
+When we consider the RRLB MPC~\eqref{eq:RRLB-NMPC} in the case of linear dynamics $x^+=f(x,u)=Ax+Bu$, we know the two following theorems to be true:
 
 \begin{theorem}[Theorem 5 in \cite{RRLB-linear-MPC}]
 	\label{nominal-stability-linear-case}
@@ -304,7 +273,7 @@ When no confusion is possible we will drop the "$(x)$".
 \subsection{Nominal asymptotic stability}\label{sec:RRLB-nominal-stability}
 
 \begin{lemma}\label{thm:Lipschitzianity}
-	Consider the RRLB MPC~\ref{eq:RRLB-NMPC} and re-write it in a simpler way as
+	Consider the RRLB MPC~\eqref{eq:RRLB-NMPC} and re-write it in a simpler way as
 	$$\tilde{V}(x)=\underset{\bf{u}}{\min} \quad \hat{J}(x,\bf{u})$$
 	where $\hat{J}(x,\bf{u})=\tilde{l}(x,u_0)+\tilde{l}(f(x,u_0),u_1)+\cdots+\tilde{F}(f(f(...),u_{N-1}))$\,.
 	If for a certain initial state $\bar{x}$ we suppose that $D_\bf{u}\hat{J}(\bar{x},\tilde{\bf{u}})=0$ and $\nabla_{\bf{u}\bf{u}}^2\hat{J}(\bar{x}, \tilde{\bf{u}})\succ 0$ (the matrix is positive definite) then in a neighborhood of $\bar{x}$ we have:
@@ -319,7 +288,7 @@ When no confusion is possible we will drop the "$(x)$".
 \end{proof}
 
 \begin{theorem}\label{thm:nominal-stability}
-	Let's consider the problem~\ref{eq:RRLB-NMPC} and assume the following:
+	Let's consider the problem~\eqref{eq:RRLB-NMPC} and assume the following:
 	\begin{enumerate}
 		\item If we denote the objective function as $J(x,\bf{u})$ as in Lemma~\ref{thm:Lipschitzianity}, we have $D_\bf{u}J(0,\bf{u}(0))=D_\bf{u}J(0,0)=0$ and $\nabla^2_{\bf{u}\bf{u}}J(0,\bf{u}(0))=\nabla^2_{\bf{u}\bf{u}}J(0,0)\succ 0$
 
@@ -383,7 +352,7 @@ When no confusion is possible we will drop the "$(x)$".
 \label{sec:constraints-satisfaction-guarantees}
 \begin{lemma}
 	\label{thm:RRLB-bounds-guarantees}
-	Consider the RRLB MPC~\ref{eq:RRLB-NMPC} and an initial state $x(0)$ in the neighborhood given by Theorem~\ref{thm:nominal-stability}.
+	Consider the RRLB MPC~\eqref{eq:RRLB-NMPC} and an initial state $x(0)$ in the neighborhood given by Theorem~\ref{thm:nominal-stability}.
 	Let's denote by $\left\{x(0),x(1),\ldots\right\}$ and $\left\{u(0), u(1),\ldots\right\}$ the closed-loop state and control trajectories (given by $u(k)=\tilde{u}_0(x(k)),~x(k+1)=f(x(k),u(k))$), and define 
 	\begin{equation*}	
 		\alpha(x(0)):=\frac{1}{\epsilon}\left(\tilde{V}(x(0))-x(0)^TP_{\rm{LQR}}x(0)-\sum_{k=0}^\infty\eta(x(k))\right)
@@ -452,12 +421,12 @@ However, we could want to gradually decrease it as we converge to actually reach
 When we do so, the asymptotic stability is actually preserved.
 
 \begin{lemma}[Monotonicity of the Lyapunov functions when $\epsilon$ decreases]
-	Let $\tilde{V}_{\epsilon}$ be the Lyapunov function defined for the RRLB MPC \ref{eq:RRLB-NMPC} with barrier parameter $\epsilon$.
+	Let $\tilde{V}_{\epsilon}$ be the Lyapunov function defined for the RRLB MPC \eqref{eq:RRLB-NMPC} with barrier parameter $\epsilon$.
 	Then for any $0<\epsilon_1<\epsilon_2$ we have $\tilde{V}_{\epsilon_1}\leq\tilde{V}_{\epsilon_2}$.
 \end{lemma}
 
 \begin{proof}
-	If we define by $\tilde{J}_epsilon$ the objective function in \eqref{eq:RRLB-NMPC}, then we have $\forall \bf{x},\bf{u}$:
+	If we define by $\tilde{J}_{\epsilon}$ the objective function in \eqref{eq:RRLB-NMPC}, then we have $\forall \bf{x},\bf{u}$:
 	\begin{align*}
 		&\epsilon_1B_x(x_k)\leq \epsilon_2B_x(x_k),\epsilon_1B_u(u_k)\leq \epsilon_2B_u(u_k)\\
 		\implies&\tilde{J}_{\epsilon_1}(\bf{x},\bf{u})<\tilde{J}_{\epsilon_2}(\bf{x},\bf{u})\\
