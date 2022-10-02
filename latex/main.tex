@@ -245,7 +245,7 @@ Now if we consider the following regular nonlinear MPC:
 \begin{align}
 	\begin{split}
 		\label{eq:NMPC}
-		V_N(x)=\underset{\bf{x},\bf{u}}{\min} &\quad \sum_{k=0}^{N-1}l(x_k,u_k)~+~F(x_N),\\
+		V(x)=\underset{\bf{x},\bf{u}}{\min} &\quad J(\bf{x}, \bf{u})=\sum_{k=0}^{N-1}l(x_k,u_k)~+~F(x_N),\\
 		\text{s.t.} &\quad x_0=x,\\
 		&\quad x_{k+1}=f(x_k,u_k),~k=0,\ldots,N-1,\\
 		&\quad x_k\in\cal{X},~k=0,\ldots,N,\\
@@ -255,12 +255,12 @@ Now if we consider the following regular nonlinear MPC:
 where the stage costs $l(x,u)=x^TQx+u^TRu$ and the terminal cost $F(x)=x^TPx$ are positive definite quadratic functions, we can define the nonlinear \textit{RRLB MPC}:
 \begin{align}
 	\begin{split}\label{eq:RRLB-NMPC}
-		\tilde{V}_N(x)=\underset{\bf{x},\bf{u}}{\min} &\quad \tilde{J}_N(\bf{x},\bf{u})=\sum_{k=0}^{N-1}\tilde{l}(x_k,u_k)~+~\tilde{F}(x_N)\\
+		\tilde{V}(x)=\underset{\bf{x},\bf{u}}{\min} &\quad \tilde{J}(\bf{x},\bf{u})=\sum_{k=0}^{N-1}\tilde{l}(x_k,u_k)~+~\tilde{F}(x_N)\\
 		\text{s.t.} &\quad x_0=x,\\
 		&\quad x_{k+1}=f(x_k,u_k),~k=0,\ldots,N-1,
 	\end{split}
 \end{align}
-where $\epsilon$ is the barrier parameter andthe new objective function $\tilde{J}_N(\bf{x},\bf{u})$ is defined using the new stage costs $\tilde{l}(x,u)=l(x,u)+\epsilon B_x(x)+\epsilon B_u(u)$ and the new terminal cost $\tilde{F}(x)=x^TPx$ for another matrix $P$ that will be determined in such a way that the control law given by the MPC yields an asymptotically stable system.
+where $\epsilon$ is the barrier parameter and the new stage and terminal costs are defined by $\tilde{l}(x,u)=l(x,u)+\epsilon B_x(x)+\epsilon B_u(u)$ and $\tilde{F}(x)=x^T\tilde{P}x$ (for a matrix $\tilde{P}$ that will be determined in such a way that the control law given by the MPC yields an asymptotically stable system).
 
 \subsection{RRLB MPC in the case of linear dynamics}
 
@@ -283,7 +283,7 @@ When we consider the RRLB MPC~\ref{eq:RRLB-NMPC} in the case of linear dynamics 
 	In the same conditions as in the previous theorem, there is a neighborhood $\cal{X}_N(\delta)$ of the origin such that for any initial state $x(0)\in\cal{X}_N(\delta)$, all the constraint will be satisfied along the closed-loop trajectories.
 	Furthermore, the set $\cal{X}_N(\delta)$ is given explicitly by:
 	\begin{multline}
-		\cal{X}_N(\delta)=\big\{x\in\cal{X}~|~\tilde{V}_N(x(0))-x(0)^TP_{\rm{LQR}}x(0)\\\leq\min\{\beta_x(\delta),\beta_u(\delta)\}\big\}
+		\cal{X}_N(\delta)=\big\{x\in\cal{X}~|~\tilde{V}(x(0))-x(0)^TP_{\rm{LQR}}x(0)\\\leq\min\{\beta_x(\delta),\beta_u(\delta)\}\big\}
 	\end{multline}
 	where $P_{\rm{LQR}}$ is the solution to the classical DARE and
 	\begin{align}
@@ -305,9 +305,9 @@ When no confusion is possible we will drop the "$(x)$".
 
 \begin{lemma}\label{thm:Lipschitzianity}
 	Consider the RRLB MPC~\ref{eq:RRLB-NMPC} and re-write it in a simpler way as
-	$$\tilde{V}_N(x)=\underset{\bf{u}}{\min} \quad J(x,\bf{u})$$
-	where $J(x,\bf{u})=\tilde{l}(x,u_0)+\tilde{l}(f(x,u_0),u_1)+\cdots+\tilde{F}(f(f(...),u_{N-1}))$\,.
-	If for a certain initial state $\bar{x}$ we suppose that $D_\bf{u}J(\bar{x},\tilde{\bf{u}})=0$ and $\nabla_{\bf{u}\bf{u}}^2J(\bar{x}, \tilde{\bf{u}})\succ 0$ (the matrix is positive definite) then in a neighborhood of $\bar{x}$ we have:
+	$$\tilde{V}(x)=\underset{\bf{u}}{\min} \quad \hat{J}(x,\bf{u})$$
+	where $\hat{J}(x,\bf{u})=\tilde{l}(x,u_0)+\tilde{l}(f(x,u_0),u_1)+\cdots+\tilde{F}(f(f(...),u_{N-1}))$\,.
+	If for a certain initial state $\bar{x}$ we suppose that $D_\bf{u}\hat{J}(\bar{x},\tilde{\bf{u}})=0$ and $\nabla_{\bf{u}\bf{u}}^2\hat{J}(\bar{x}, \tilde{\bf{u}})\succ 0$ (the matrix is positive definite) then in a neighborhood of $\bar{x}$ we have:
 	\begin{itemize}[label=\textbullet]
 		\item $\forall k=0,\ldots,N-1,\quad \|\tilde{u}_k(x)\|=O(\|x\|)$
 		\item $\forall k=1,\ldots,N,\quad \|\tilde{x}_k(x)\|=f(f(\ldots,u_{k-2}),u_{k-1})=O(\|x\|)$
@@ -326,10 +326,10 @@ When no confusion is possible we will drop the "$(x)$".
 		\item When linearizing the system dynamics around the origin and letting $A=D_xf(0,0),$ $B=D_uf(0,0)$, we suppose that the pair $(A,B)$ is stabilizable.
 		This implies in particular that there exists a stabilizing cost $K$, i.e. a matrix such that $A_K:=A+BK$ only has eigenvalues in the unit disk.
 
-		\item The matrix $P$ defining the terminal costs is the unique positive definite solution to the following Lyapunov equation:
+		\item The matrix $\tilde{P}$ defining the terminal costs is the unique positive definite solution to the following Lyapunov equation:
 		\begin{equation}
 			\label{eq:Lyapunov}
-			P=A_K^TPA_K+\mu \tilde{Q}_K
+			\tilde{P}=A_K^TPA_K+\mu \tilde{Q}_K
 		\end{equation}
 		where $\mu>1$ and $\tilde{Q}_K=\underbrace{Q+\epsilon M_x}_{=:\tilde{Q}}+K^T(\underbrace{R+\epsilon M_u}_{=:\tilde{R}})K$\,.
 	\end{enumerate}
@@ -342,14 +342,14 @@ When no confusion is possible we will drop the "$(x)$".
 		\label{eq:modified-DARE}
 		\begin{cases}
 			K=-(\tilde{R}+B^TP B)^{-1}B^TP A,&\\
-			P=A_K^TP A_K+\tilde{Q}_K\,.
+			\tilde{P}=A_K^TP A_K+\tilde{Q}_K\,.
 		\end{cases}
 	\end{equation}
 	The factor $\mu$ is very important in theory but in practice could be taken very close to 1 or actually equal to 1.
 \end{remark}
 
 \begin{proof}~
-	To prove the result we will show that $\tilde{V}_N$ is a Lyapunov function in a neighborhood of the origin.
+	To prove the result we will show that $\tilde{V}$ is a Lyapunov function in a neighborhood of the origin.
 	First, using the recentering of the RRLB functions, we can write the Taylor expansion of the stage costs $\tilde{l}$:
 	\begin{align*}
 		\tilde{l}(x,u)&=x^T[\nabla_{xx}^2\tilde{l}(0,0)] x+u^T[\nabla_{uu}^2\tilde{l}(0,0)]u+O(\|x\|^3+\|u\|^3)\\
@@ -371,12 +371,12 @@ When no confusion is possible we will drop the "$(x)$".
 	$\bf{x}'=(\tilde{x}_1,\ldots,\tilde{x}_N,f(\tilde{x}_N,K\tilde{x}_N))$ and $\bf{u}'=(\tilde{u}_1,\ldots,\tilde{u}_{N-1},K\tilde{x}_N)$\,.
 	Then we obtain:
 	\begin{align*}
-		\tilde{V}_N(\tilde{x}_1)&\leq\tilde{J}_N(\bf{x}',\bf{u}')=\tilde{J}_N(\tilde{\bf{x}},\tilde{\bf{u}})-\tilde{l}(x,\tilde{u}_0)\\
+		\tilde{V}(\tilde{x}_1)&\leq\tilde{J}(\bf{x}',\bf{u}')=\tilde{J}(\tilde{\bf{x}},\tilde{\bf{u}})-\tilde{l}(x,\tilde{u}_0)\\
 		&\quad+\tilde{F}(f(\tilde{x}_N,K\tilde{x}_N))-\tilde{F}(\tilde{x}_N)+\tilde{l}(\tilde{x}_N,K\tilde{x}_N)\\
-		&=\tilde{V}_N(x)-O(\|x\|)^2+O(\|x\|^3),
+		&=\tilde{V}(x)-O(\|x\|)^2+O(\|x\|^3),
 	\end{align*}
-	which proves the descent property for $\tilde{V}_N$\,.
-	Finally, it is easy to show that $\tilde{V}_N$ is lower and upper bounded by coercive quadratic functions (since $Q,R$ are positive definite and $B_x,B_u$ are positive definite and upper bounded by quadratics), so that $\tilde{V}_N$ is indeed a Lyapunov function in a small neighborhood around the origin.
+	which proves the descent property for $\tilde{V}$\,.
+	Finally, it is easy to show that $\tilde{V}$ is lower and upper bounded by coercive quadratic functions (since $Q,R$ are positive definite and $B_x,B_u$ are positive definite and upper bounded by quadratics), so that $\tilde{V}$ is indeed a Lyapunov function in a small neighborhood around the origin.
 \end{proof}
 
 \subsection{Constraints satisfaction guarantees}
@@ -386,9 +386,15 @@ When no confusion is possible we will drop the "$(x)$".
 	Consider the RRLB MPC~\ref{eq:RRLB-NMPC} and an initial state $x(0)$ in the neighborhood given by Theorem~\ref{thm:nominal-stability}.
 	Let's denote by $\left\{x(0),x(1),\ldots\right\}$ and $\left\{u(0), u(1),\ldots\right\}$ the closed-loop state and control trajectories (given by $u(k)=\tilde{u}_0(x(k)),~x(k+1)=f(x(k),u(k))$), and define 
 	\begin{equation*}	
-		\alpha(x(0)):=\frac{1}{\epsilon}\left(\tilde{V}_N(x(0))-x(0)^TP_{\rm{LQR}}x(0)-\sum_{k=0}^\infty\eta(x(k))\right)
+		\alpha(x(0)):=\frac{1}{\epsilon}\left(\tilde{V}(x(0))-x(0)^TP_{\rm{LQR}}x(0)-\sum_{k=0}^\infty\eta(x(k))\right)
 	\end{equation*}
-	with $P_{\rm{LQR}}$ is the solution to the DARE \ref{eq:modified-DARE}, and $\eta(x)=\tilde{l}(\tilde{x}_N(x),K\tilde{x}_N(x))+\tilde{F}(\tilde{x}_N(x))-\tilde{F}(f(\tilde{x}_N(x), K\tilde{x}_N(x)))$.
+	with $P_{\rm{LQR}}$ is the solution to the classical DARE
+	% \begin{multline*}
+	% 	P_{\rm{LQR}} = A^T P_{\rm{LQR}} A \\
+	% 	- A^T P_{\rm{LQR}} B (R + B^T P_{\rm{LQR}} B)^{-1} B^T P_{\rm{LQR}} A\\
+	% 	+ Q + K^T R K
+	% \end{multline*}
+	, and $\eta(x)=\tilde{l}(\tilde{x}_N(x),K\tilde{x}_N(x))+\tilde{F}(\tilde{x}_N(x))-\tilde{F}(f(\tilde{x}_N(x), K\tilde{x}_N(x)))$.
 	Then $\forall k\geq 0$:
 	\begin{equation*}
 		B_x(x(k)),B_u(u(k))\leq\alpha(x(0))
@@ -398,19 +404,19 @@ When no confusion is possible we will drop the "$(x)$".
 \begin{proof}
 	In the proof of theorem~\ref{thm:nominal-stability} we showed that $\forall k\geq 0$:
 	\begin{multline*}
-		\tilde{V}_N(x(k+1))-\tilde{V}_N(x(k))\leq\\
+		\tilde{V}(x(k+1))-\tilde{V}(x(k))\leq\\
 		-\tilde{l}(x(k),u(k))+\tilde{l}(\tilde{x}_N(x(k)), K\tilde{x}_N(x(k)))\\
 		-\tilde{F}(\tilde{x}_N(x(k)))+\tilde{F}(f(\tilde{x}_N(x(k)),\tilde{x}_N(x(k)))),
 	\end{multline*}
-	so by summing for $k=0,1,\dots$, we get a telescopic sum that we can compute using the fact that the system is asymptotically stable so $\lim_{k\to\infty}\tilde{V}_N(x(k))=0$:
+	so by summing for $k=0,1,\dots$, we get a telescopic sum that we can compute using the fact that the system is asymptotically stable so $\lim_{k\to\infty}\tilde{V}(x(k))=0$:
 	\begin{align*}
-		\tilde{V}_N(x(0))&\geq\sum_{k=0}^\infty\tilde{l}(x(k),u(k))-\tilde{l}(\tilde{x}_N(x(k)), K\tilde{x}_N(x(k)))\\
+		\tilde{V}(x(0))&\geq\sum_{k=0}^\infty\tilde{l}(x(k),u(k))-\tilde{l}(\tilde{x}_N(x(k)), K\tilde{x}_N(x(k)))\\
 		&\qquad+\tilde{F}(\tilde{x}_N(x(k)))-\tilde{F}(f(\tilde{x}_N(x(k)),\tilde{x}_N(x(k))))\\
 		&=\sum_{k=0}^\infty l(x(k), u(k))+\epsilon B_x(x(k))+\epsilon B_u(u(k))+\eta(x(k))\\
 		&\geq x(0)^TP_{\rm{LQR}}x(0)+\sum_{k=0}^\infty\eta(x(k))\\
 		&\qquad+\epsilon\sum_{k=0}^\infty B_x(x(k))+\epsilon\sum_{k=0}^\infty B_u(u(k))\\
 	\end{align*}
-	Even if we don't know a closed form for $\eta(x(k))$, we know that $\sum_{k=0}^\infty\eta(x(k))$ must be finite because it is bounded by $\tilde{V}_N(x(0))$\,.
+	Even if we don't know a closed form for $\eta(x(k))$, we know that $\sum_{k=0}^\infty\eta(x(k))$ must be finite because it is bounded by $\tilde{V}(x(0))$\,.
 	Now since the RRLB functions are all positive definite, we can easily conclude.
 \end{proof}
 
@@ -445,6 +451,24 @@ All the previous section assumed that the barrier parameter $\epsilon$ was fixed
 However, we could want to gradually decrease it as we converge to actually reach the nominal trajectory.
 When we do so, the asymptotic stability is actually preserved.
 
+\begin{lemma}[Monotonicity of the Lyapunov functions when $\epsilon$ decreases]
+	Let $\tilde{V}_{\epsilon}$ be the Lyapunov function defined for the RRLB MPC \ref{eq:RRLB-NMPC} with barrier parameter $\epsilon$.
+	Then for any $0<\epsilon_1<\epsilon_2$ we have $\tilde{V}_{\epsilon_1}\leq\tilde{V}_{\epsilon_2}$.
+\end{lemma}
+
+\begin{proof}
+	If we define by $\tilde{J}_epsilon$ the objective function in \eqref{eq:RRLB-NMPC}, then we have $\forall \bf{x},\bf{u}$:
+	\begin{align*}
+		&\epsilon_1B_x(x_k)\leq \epsilon_2B_x(x_k),\epsilon_1B_u(u_k)\leq \epsilon_2B_u(u_k)\\
+		\implies&\tilde{J}_{\epsilon_1}(\bf{x},\bf{u})<\tilde{J}_{\epsilon_2}(\bf{x},\bf{u})\\
+		\implies&\tilde{V}_{\epsilon_1}(x)=\min_{\bf{x},\bf{u}}\tilde{J}_{\epsilon_1}(\bf{x},\bf{u})\leq\min_{\bf{x},\bf{u}}\tilde{J}_{\epsilon_2}(\bf{x},\bf{u}) = \tilde{V}_{\epsilon_2}(x)\\
+	\end{align*}
+\end{proof}
+
+\begin{theorem}
+	Let us suppose that we have run RRLB MPC in closed loop with a decreasing sequence of $\{\epsilon_k\}_{k=0}^\infty$ and that at each step, the associated Lyapunov function is $\tilde{V}_{k}$.
+	Then the system is still locally asymptotically stable.
+\end{theorem}
 
 
 \appendix
