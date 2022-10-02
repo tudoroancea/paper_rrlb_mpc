@@ -1,11 +1,22 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from run_closed_loop import run_closed_loop_simulation
+from work import run_closed_loop_simulation
+from work.cstr import find_cstr_steady_state
 
 if __name__ == "__main__":
+    x_ref, u_ref = find_cstr_steady_state(1)
+    params = {
+        "N": 100,
+        "Nsim": 40,
+        "dt": 20 / 3600,
+        "x_ref": x_ref,
+        "u_ref": u_ref,
+        "xinit": np.array([1.0, 0.5, 100.0, 100.0]),
+    }
     res_reg = run_closed_loop_simulation(
         problem="cstr",
+        params=params,
         rrlb=False,
         show_plot=False,
         # generate_code=False,
@@ -13,6 +24,7 @@ if __name__ == "__main__":
     )
     res_rrlb = run_closed_loop_simulation(
         problem="cstr",
+        params=params,
         rrlb=True,
         show_plot=False,
         # generate_code=False,

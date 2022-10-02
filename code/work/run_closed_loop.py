@@ -6,65 +6,63 @@ from acados_template import AcadosOcpSolver
 from casadi import Function
 from scipy.linalg import solve_discrete_are
 
-from cstr import cstr_model
-from cstr import cstr_ocp
-from cstr import cstr_plot
+from .cstr import *
+from .mass_chain import *
 
 __all__ = ["run_closed_loop_simulation"]
-
-# options for CSTR: dt, N, rrlb
 
 
 def run_closed_loop_simulation(
     problem: str,
-    dt: float = None,
-    N: int = None,
-    M: int = None,  # only useful for Mass chain problem
-    Nsim: int = None,
-    x0: np.ndarray = None,  # only useful for CSTR problem
-    xr: np.ndarray = None,
-    ur: np.ndarray = None,
+    params: dict,
     rrlb: bool = True,
     generate_code: bool = True,
     build_solver: bool = True,
     show_plot: bool = True,
     plot_filename: str = "",
 ) -> dict[str, Union[float, bool, np.ndarray]]:
-    # check input data and give default values
+    """
+
+    :param problem:
+    :param params: should co
+    :param rrlb:
+    :param generate_code:
+    :param build_solver:
+    :param show_plot:
+    :param plot_filename:
+    :return:
+    """
     assert problem in {"cstr", "mass_chain"}
     if problem == "cstr":
-        if dt is None:
-            dt = 20 / 3600
-        if N is None:
-            N = 100
-        if Nsim is None:
-            Nsim = 40
-        if x0 is None:
-            x0 = np.array([1.0, 0.5, 100.0, 100.0])
-        if xr is None:
-            xr = cstr_model.xr1
-        if ur is None:
-            ur = cstr_model.ur1
+        dt = params.get("dt", 20 / 3600)
+        N = params.get("N", 100)
+        Nsim = params.get("Nsim", 40)
+        x_ref_default, u_ref_default = cstr_model.find_cstr_steady_state(1)
+        x_ref = params.get("x_ref", x_ref_default)
+        u_ref = params.get("u_ref", u_ref_default)
+        xinit = params.get("xinit", np.array([1.0, 0.5, 100.0, 100.0]))
+        M = None
+        x_last = None
     elif problem == "mass_chain":
-        if dt is None:
-            dt = 0.2
-        if N is None:
-            N = 40
-        if M is None:
-            M = 5
-        if Nsim is None:
-            Nsim = 40
-        if x0 is None:
-            x0 = np.array([1.0, 1.0])
-        if xr is None:
-            xr = np.array([0.0, 0.0])
-        if ur is None:
-            ur = np.array([0.0])
+        dt = params.get("dt", 0.2)
+        N = params.get("N", 40)
+        Nsim = params.get("Nsim", 40)
+        M = params.get("M", 9)
+        x_last = params.get("x_last", np.array([1.0, 0.0, 0.0]))
+        x_ref = mass_chain_model.find_mass_chain_steady_state(M=M, x_last=x_last)
+        u_ref = np.zeros(3)
+        xinit = x_ref
+    else:
+        raise ValueError(f"Unknown problem: {problem}")
 
     # create ocp object to formulate the OCP
     if problem == "cstr":
         ocp, stuff = cstr_ocp.export_cstr_ocp(
-            dt=dt, N=N, x0=x0, x_ref=xr, u_ref=ur, rrlb=rrlb
+            dt=dt, N=N, x_ref=x_ref, u_ref=u_ref, rrlb=rrlb
+        )
+    elif problem == "mass_chain":
+        ocp, stuff = mass_chain_ocp.export_mass_chain_ocp(
+            dt=dt, N=N, M=M, x_last=x_last, rrlb=rrlb
         )
     else:
         raise ValueError(f"Unknown problem: {problem}")
@@ -72,7 +70,10 @@ def run_closed_loop_simulation(
     # extract information from ocp (dimensions, dynamics, matrices, etc...)
     nx = ocp.model.x.size()[0]
     nu = ocp.model.u.size()[0]
-    f_disc = Function("f_disc", [ocp.model.x, ocp.model.u], [ocp.model.disc_dyn_expr])
+    f_disc_ca = Function(
+        "f_disc", [ocp.model.x, ocp.model.u], [ocp.model.disc_dyn_expr]
+    )
+    f_disc = lambda x, u: f_disc_ca(x, u).full().flatten()
     Q = stuff["Q"]
     R = stuff["R"]
     A = stuff["A"]
@@ -80,16 +81,18 @@ def run_closed_loop_simulation(
     M_x = stuff["M_x"]
     M_u = stuff["M_u"]
 
-    # declare the variables that will contain the simulation data
-    if problem == "cstr":
-        xcurrent = x0
-    else:
-        xcurrent = f_disc(x0, np.array([-1.0, 1.0, 1.0]))
+    # for the mass chain problem, perturb the initial state with a control [-1,1,1] for
+    # 5 sampling times
+    if problem == "mass_chain":
+        for i in range(5):
+            xinit = f_disc(xinit, np.array([-1.0, 1.0, 1.0]))
 
+    # declare the variables that will contain the simulation data
+    xcurrent = xinit
     last_prediction = np.zeros((N + 1, nx + nu))
     n_convergence = Nsim + 1
     sim_data = {
-        "x_sim": [x0],
+        "x_sim": [xinit],
         "u_sim": [],
         "time_tot": [],
         "epsilon": [],
@@ -121,8 +124,8 @@ def run_closed_loop_simulation(
             xtpr = xcurrent
             for j in range(N):
                 acados_ocp_solver.set(j, "x", xtpr)
-                acados_ocp_solver.set(j, "u", ur)
-                xtpr = f_disc(xtpr, ur).full().flatten()
+                acados_ocp_solver.set(j, "u", u_ref)
+                xtpr = f_disc(xtpr, u_ref)
             acados_ocp_solver.set(N, "x", xtpr)
         else:
             # shift the last prediction
@@ -132,9 +135,7 @@ def run_closed_loop_simulation(
             acados_ocp_solver.set(
                 N,
                 "x",
-                f_disc(last_prediction[-1, :nx], last_prediction[-1, nx:])
-                .full()
-                .flatten(),
+                f_disc(last_prediction[-1, :nx], last_prediction[-1, nx:]),
             )
 
         # set runtime parameters in solver
@@ -158,17 +159,17 @@ def run_closed_loop_simulation(
             last_prediction[j, :] = np.append(
                 acados_ocp_solver.get(j, "x"), acados_ocp_solver.get(j, "u")
             )
-        last_prediction[N, :] = np.append(acados_ocp_solver.get(N, "x"), ur)
+        last_prediction[N, :] = np.append(acados_ocp_solver.get(N, "x"), u_ref)
 
         # update simulation data
         sim_data["u_sim"].append(acados_ocp_solver.get(0, "u"))
-        xcurrent = f_disc(xcurrent, sim_data["u_sim"][-1]).full().flatten()
+        xcurrent = f_disc(xcurrent, sim_data["u_sim"][-1])
         sim_data["x_sim"].append(xcurrent)
         sim_data["time_tot"].append(acados_ocp_solver.get_stats("time_tot"))
 
         # check if there is convergence in relative norm
         if (
-            np.linalg.norm(xcurrent - xr) / np.linalg.norm(xr) < 1.0e-6
+            np.linalg.norm(xcurrent - x_ref) / np.linalg.norm(x_ref) < 1.0e-6
             and n_convergence == Nsim + 1
         ):
             n_convergence = i + 1
@@ -183,8 +184,8 @@ def run_closed_loop_simulation(
     if problem == "cstr":
         cstr_plot.plot_cstr(
             ocp=ocp,
-            x_ref=xr,
-            u_ref=ur,
+            x_ref=x_ref,
+            u_ref=u_ref,
             x_sim=sim_data["x_sim"],
             u_sim=sim_data["u_sim"],
             dt=dt * 3600,

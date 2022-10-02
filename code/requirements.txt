@@ -1,4 +1,5 @@
 numpy
 scipy
-matplotlib~=3.5.0
+matplotlib
 tqdm
+casadi
