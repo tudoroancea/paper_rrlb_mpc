@@ -1,16 +1,22 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from cstr_experiment import run_closed_loop_simulation
+from run_closed_loop import run_closed_loop_simulation
 
 if __name__ == "__main__":
     res_reg = run_closed_loop_simulation(
+        problem="cstr",
         rrlb=False,
         show_plot=False,
+        # generate_code=False,
+        # build_solver=False,
     )
     res_rrlb = run_closed_loop_simulation(
+        problem="cstr",
         rrlb=True,
         show_plot=False,
+        # generate_code=False,
+        # build_solver=False,
     )
     print(f"n_conv_reg: {res_reg['n_convergence']}")
     print(f"n_conv_rrlb: {res_rrlb['n_convergence']}")
@@ -23,10 +29,10 @@ if __name__ == "__main__":
     )
     # plot time_tot
     plt.figure()
-    plt.plot(res_reg["time_tot"], label="regular")
-    plt.plot(res_rrlb["time_tot"], label="rrlb")
+    plt.plot(1000 * res_reg["time_tot"], label="regular")
+    plt.plot(1000 * res_rrlb["time_tot"], label="rrlb")
     plt.legend()
-    plt.ylabel("time [s]")
+    plt.ylabel("time [ms]")
     plt.xlabel("time step")
 
     # plot epsilon

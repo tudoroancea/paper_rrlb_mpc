@@ -1,8 +1,7 @@
 from acados_template import AcadosOcp
 from casadi import *
-from scipy.linalg import solve_discrete_are
 
-from cstr_model import *
+from .cstr_model import *
 
 __all__ = ["export_cstr_ocp"]
 
@@ -43,7 +42,7 @@ def export_cstr_ocp(
     :param rrlb: whether to use RRLB MPC or not
     :type rrlb: bool
 
-    :return: the AcadosOcp instace and some useful matrices computed inside (A, B, Q, R, M_x, M_u)
+    :return: the AcadosOcp instance and some useful matrices computed inside (A, B, Q, R, M_x, M_u)
     """
     ocp = AcadosOcp()
     ocp.model = export_cstr_model(dt=dt)
@@ -160,6 +159,7 @@ def export_cstr_ocp(
     ocp.solver_options.integrator_type = "DISCRETE"
     ocp.solver_options.nlp_solver_type = "SQP_RTI"
     ocp.solver_options.print_level = 0
+    ocp.code_export_directory = "cstr_gen_code_" + ("rrlb" if rrlb else "reg")
 
     return ocp, {
         "A": A,

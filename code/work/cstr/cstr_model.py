@@ -65,7 +65,7 @@ c_A0 = 5.1  # [mol/l]
 theta_0 = 104.9  # [°C]
 
 
-def export_cstr_model(dt: float, rk4_nodes: int = 6) -> AcadosModel:
+def export_cstr_model(dt: float, rk4_nodes: int = 10) -> AcadosModel:
     """
     Create an AcadosModel for the CSTR model.
 
