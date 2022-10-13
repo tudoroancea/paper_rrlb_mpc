@@ -23,10 +23,10 @@ def export_mass_chain_model(dt: float, M: int, num_rk4_nodes: int = 10) -> Acado
     :return: the AcadosModel instance and the function giving the accelerations of the
         intermediate masses
     """
-    X = ca.SX.sym("X", 3 * (M + 1))
-    V = ca.SX.sym("V", 3 * M)
+    X = ca.SX.sym("X", 3 * (M + 1), 1)
+    V = ca.SX.sym("V", 3 * M, 1)
     x = ca.vertcat(X, V)
-    u = ca.SX.sym("u", 3)
+    u = ca.SX.sym("u", 3, 1)
 
     # model constants
     g = np.array([0.0, 0.0, -9.81])  # [m.s^-2]
@@ -34,15 +34,34 @@ def export_mass_chain_model(dt: float, M: int, num_rk4_nodes: int = 10) -> Acado
     D = 0.1  # [N]
     m = 0.03  # [kg]
 
-    forces = [
-        D
-        * (1 - L / ca.norm_2(X[3 * (i + 1) : 3 * (i + 2)] - X[3 * i : 3 * (i + 1)]))
-        * (X[3 * (i + 1) : 3 * (i + 2)] - X[3 * i : 3 * (i + 1)])
-        for i in range(M)
-    ]
-    forces.insert(0, D * (1 - L / ca.norm_2(X[:3])) * (X[:3]))
+    A = ca.SX.zeros(3 * M, 1)
 
-    A = ca.vertcat(*[(forces[i] - forces[i - 1]) / m + g for i in range(1, M + 1)])
+    for i in range(M):
+        A[3 * i + 2] = -9.81
+
+    for i in range(M + 1):
+        if i == 0:
+            dist = X[:3]
+        else:
+            dist = X[3 * i : 3 * (i + 1)] - X[3 * (i - 1) : 3 * i]
+
+        scale = D / m * (1 - L / ca.norm_2(dist))
+        F = scale * dist
+        if i < M:
+            A[3 * i : 3 * (i + 1)] -= F
+
+        if i > 0:
+            A[3 * (i - 1) : 3 * i] += F
+
+    # forces = [
+    #     D
+    #     * (1 - L / ca.norm_2(X[3 * (i + 1) : 3 * (i + 2)] - X[3 * i : 3 * (i + 1)]))
+    #     * (X[3 * (i + 1) : 3 * (i + 2)] - X[3 * i : 3 * (i + 1)])
+    #     for i in range(M)
+    # ]
+    # forces.insert(0, D * (1 - L / ca.norm_2(X[:3])) * (X[:3]))
+    #
+    # A = ca.vertcat(*[(forces[i] - forces[i - 1]) / m + g for i in range(1, M + 1)])
 
     f_cont = ca.Function(
         "f_cont",

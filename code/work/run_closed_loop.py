@@ -1,3 +1,5 @@
+import io
+from contextlib import redirect_stdout
 from typing import Union, Optional
 
 import numpy as np
@@ -16,6 +18,7 @@ def run_closed_loop_simulation(
     problem: str,
     params: dict,
     rrlb: bool = True,
+    verbose: bool = False,
     generate_code: bool = True,
     build_solver: bool = True,
     show_plot: bool = True,
@@ -96,27 +99,45 @@ def run_closed_loop_simulation(
         "u_sim": [],
         "time_tot": [],
         "epsilon": [],
+        "discrepancies": [],
     }
 
     # compute the first runtime parameters for the RRLB MPC (barrier parameter epsilon
     # and terminal cost P)
     def compute_runtime_parameters(iteration: Optional[int] = None):
-        epsilon = 30.0 * 0.5**iteration
+        epsilon = (
+            params.get("epsilon_0", 30.0) * params.get("epsilon_rate", 0.9) ** iteration
+        )
         P = solve_discrete_are(A, B, Q + epsilon * M_x, R + epsilon * M_u)
         return np.append(epsilon, P.ravel("F"))
 
     if rrlb:
-        ocp.parameter_values = np.zeros(1 + nx * nx)
+        ocp.parameter_values = np.zeros(nx**2 + 1)
 
-    # create an acados ocp solver
-    acados_ocp_solver = AcadosOcpSolver(
-        ocp,
-        json_file=ocp.model.name + "_ocp_" + ("rrlb" if rrlb else "reg") + ".json",
-        generate=generate_code,
-        build=build_solver,
-    )
+    # create an acados ocp solver (
+    if verbose:
+        acados_ocp_solver = AcadosOcpSolver(
+            ocp,
+            json_file=ocp.model.name + "_ocp_" + ("rrlb" if rrlb else "reg") + ".json",
+            generate=generate_code,
+            build=build_solver,
+        )
+    else:
+        with io.StringIO() as buffer, redirect_stdout(buffer):
+            acados_ocp_solver = AcadosOcpSolver(
+                ocp,
+                json_file=ocp.model.name
+                + "_ocp_"
+                + ("rrlb" if rrlb else "reg")
+                + ".json",
+                generate=generate_code,
+                build=build_solver,
+            )
 
     # control loop
+    if verbose:
+        print("Running closed-loop simulation...")
+
     for i in tqdm.trange(Nsim):
         # define initial guess for the solver
         if i == 0:
@@ -140,10 +161,9 @@ def run_closed_loop_simulation(
 
         # set runtime parameters in solver
         if rrlb:
-            params = compute_runtime_parameters(iteration=i)
-            sim_data["epsilon"].append(params[0])
-            for j in range(N):
-                acados_ocp_solver.set(j, "p", params)
+            p = compute_runtime_parameters(iteration=i)
+            sim_data["epsilon"].append(p[0])
+            acados_ocp_solver.acados_ocp.parameter_values = p
 
         # solve ocp
         acados_ocp_solver.set(0, "lbx", xcurrent)
@@ -168,12 +188,17 @@ def run_closed_loop_simulation(
         sim_data["time_tot"].append(acados_ocp_solver.get_stats("time_tot"))
 
         # check if there is convergence in relative norm
-        if (
-            np.linalg.norm(xcurrent - x_ref) / np.linalg.norm(x_ref) < 1.0e-6
-            and n_convergence == Nsim + 1
-        ):
+        sim_data["discrepancies"].append(
+            np.linalg.norm(xcurrent - x_ref) / np.linalg.norm(x_ref)
+        )
+        if sim_data["discrepancies"][-1] < 1.0e-6 and n_convergence == Nsim + 1:
             n_convergence = i + 1
+            if verbose:
+                print("Convergence reached at iteration {}".format(n_convergence))
             # break
+
+    if verbose:
+        print("Simulation finished.")
 
     # create np.ndarrays for the simulation data
     for key, val in sim_data.items():

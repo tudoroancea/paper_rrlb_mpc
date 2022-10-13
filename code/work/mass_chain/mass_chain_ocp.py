@@ -40,8 +40,11 @@ def export_mass_chain_ocp(
     delta_R = 0.01
 
     # costs
-    Q = np.zeros((nx, nx))
-    Q[-3 * (M + 1) :, -3 * (M + 1) :] = np.array([[beta] + [gamma] * 3 * M])
+    # Q = np.zeros((nx, nx))
+    # Q[-3 * (M + 1) :, -3 * (M + 1) :] = np.array(
+    #     [0.0] * 3 * M + [beta] + [gamma] * 3 * M
+    # )
+    Q = np.diag([0.0] * 3 * M + [beta] * 3 + [gamma] * 3 * M)
     R = delta_R * np.eye(nu)
 
     # reference state and control
@@ -53,7 +56,7 @@ def export_mass_chain_ocp(
     C_x = np.vstack((np.eye(nx), -np.eye(nx)))
     C_u = np.vstack((np.eye(nu), -np.eye(nu)))
     d_x = np.zeros(2 * nx)
-    d_x[: 3 * (M + 1)] = np.tile([1.0, 1.0, 1.5], (M + 1))
+    d_x[: 3 * (M + 1)] = np.tile([1.1, 1.1, 1.5], (M + 1))
     d_x[nx : nx + 3 * (M + 1)] = np.tile([0.1, 0.1, 5.0 - z_min], (M + 1))
     d_x[3 * (M + 1) : nx] = np.tile([2.0, 2.0, 2.0], M)
     d_x[-3 * M :] = np.tile([2.0, 2.0, 2.0], M)
@@ -61,7 +64,7 @@ def export_mass_chain_ocp(
     d_u = np.ones(2 * nu)
 
     return export_ocp(
-        model=export_mass_chain_model(dt=dt, M=M),
+        model=export_mass_chain_model(dt=dt, M=M, num_rk4_nodes=4),
         Q=Q,
         R=R,
         C_x=C_x,
