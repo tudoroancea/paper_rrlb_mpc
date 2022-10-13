@@ -159,11 +159,13 @@
 Lorem ipsum dolor sit amet.
 
 
-\section{Background}
+
+
+\section{Background material}
 
 \subsection{The RRLB MPC}
 
-In this paper we consider the control of general nonlinear time-invariant discrete-time dynamical systems of the form 
+In this paper we consider the control of general nonlinear $\ctwo$ time-invariant discrete-time dynamical systems of the form 
 \begin{equation}
 	\label{eq:sys}
 	x(k+1) = f(x(k),u(k)),\, x(k)\in\R^{n_x}, u(k)\in\R^{n_u},
@@ -273,10 +275,10 @@ When no confusion is possible we will drop the "$(x)$".
 \subsection{Nominal asymptotic stability}\label{sec:RRLB-nominal-stability}
 
 \begin{lemma}\label{thm:Lipschitzianity}
-	Consider the RRLB MPC~\eqref{eq:RRLB-NMPC} and re-write it in a simpler way as
+	Consider the RRLB MPC~\eqref{eq:RRLB-NMPC} that can be written as the unconstrained problem
 	$$\tilde{V}(x)=\underset{\bf{u}}{\min} \quad \hat{J}(x,\bf{u})$$
 	where $\hat{J}(x,\bf{u})=\tilde{l}(x,u_0)+\tilde{l}(f(x,u_0),u_1)+\cdots+\tilde{F}(f(f(...),u_{N-1}))$\,.
-	If for a certain initial state $\bar{x}$ we suppose that $D_\bf{u}\hat{J}(\bar{x},\tilde{\bf{u}})=0$ and $\nabla_{\bf{u}\bf{u}}^2\hat{J}(\bar{x}, \tilde{\bf{u}})\succ 0$ (the matrix is positive definite) then in a neighborhood of $\bar{x}$ we have:
+	If for a certain initial state $\bar{x}$ we suppose that $D_\bf{u}\hat{J}(\bar{x},\tilde{\bf{u}}(\bar{x}))=0$ and $\nabla_{\bf{u}\bf{u}}^2\hat{J}(\bar{x}, \tilde{\bf{u}}(\bar{x}))\succ 0$ (the matrix is positive definite) then in a neighborhood of $\bar{x}$ we have:
 	\begin{itemize}[label=\textbullet]
 		\item $\forall k=0,\ldots,N-1,\quad \|\tilde{u}_k(x)\|=O(\|x\|)$
 		\item $\forall k=1,\ldots,N,\quad \|\tilde{x}_k(x)\|=f(f(\ldots,u_{k-2}),u_{k-1})=O(\|x\|)$
@@ -298,7 +300,7 @@ When no confusion is possible we will drop the "$(x)$".
 		\item The matrix $\tilde{P}$ defining the terminal costs is the unique positive definite solution to the following Lyapunov equation:
 		\begin{equation}
 			\label{eq:Lyapunov}
-			\tilde{P}=A_K^TPA_K+\mu \tilde{Q}_K
+			\tilde{P}=A_K^T\tilde{P}A_K+\mu \tilde{Q}_K
 		\end{equation}
 		where $\mu>1$ and $\tilde{Q}_K=\underbrace{Q+\epsilon M_x}_{=:\tilde{Q}}+K^T(\underbrace{R+\epsilon M_u}_{=:\tilde{R}})K$\,.
 	\end{enumerate}
@@ -306,24 +308,24 @@ When no confusion is possible we will drop the "$(x)$".
 \end{theorem}
 
 \begin{remark}~
-	To identify the matrix $K$, we can approximate $\mu\approx 1$ and solve the following DARE:
+	To identify the matrix $K$, we can approximate $\mu\approx 1$ and solve the following classical DARE:
 	\begin{equation}
 		\label{eq:modified-DARE}
 		\begin{cases}
-			K=-(\tilde{R}+B^TP B)^{-1}B^TP A,&\\
-			\tilde{P}=A_K^TP A_K+\tilde{Q}_K\,.
+			K=-(\tilde{R}+B^T\tilde{P} B)^{-1}B^T\tilde{P} A,&\\
+			\tilde{P}=A_K^T\tilde{P} A_K+\tilde{Q}_K\,.
 		\end{cases}
 	\end{equation}
 	The factor $\mu$ is very important in theory but in practice could be taken very close to 1 or actually equal to 1.
 \end{remark}
 
 \begin{proof}~
-	To prove the result we will show that $\tilde{V}$ is a Lyapunov function in a neighborhood of the origin.
+	To prove local asymptotic stability we will show that $\tilde{V}$ is a Lyapunov function in a neighborhood of the origin.
 	First, using the recentering of the RRLB functions, we can write the Taylor expansion of the stage costs $\tilde{l}$:
 	\begin{align*}
 		\tilde{l}(x,u)&=x^T[\nabla_{xx}^2\tilde{l}(0,0)] x+u^T[\nabla_{uu}^2\tilde{l}(0,0)]u+O(\|x\|^3+\|u\|^3)\\
-		&=x^T[Q+\epsilon M_x]x+u^T[R+\epsilon M_u]u+O(\|x\|^3+\|u\|^3)\\
-		&\implies\tilde{l}(x,Kx)=x^TQ_Kx+O(\|x\|^3)\,.
+		&=x^T\tilde{Q}x+u^T\tilde{R}u+O(\|x\|^3+\|u\|^3)\\
+		&\implies\tilde{l}(x,Kx)=x^T\tilde{Q}_Kx+O(\|x\|^3)\,.
 	\end{align*}
 	By the second assumption, we also have $\forall x\in\R^{n_x}$:
 	\begin{equation}
