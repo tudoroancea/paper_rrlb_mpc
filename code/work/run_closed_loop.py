@@ -3,10 +3,10 @@ from contextlib import redirect_stdout
 from typing import Union, Optional
 
 import numpy as np
-import tqdm
 from acados_template import AcadosOcpSolver
 from casadi import Function
 from scipy.linalg import solve_discrete_are
+from tqdm import trange
 
 from .cstr import *
 from .mass_chain import *
@@ -16,8 +16,9 @@ __all__ = ["run_closed_loop_simulation"]
 
 def run_closed_loop_simulation(
     problem: str,
-    params: dict,
+    problem_params: dict,
     rrlb: bool = True,
+    rrlb_params: Optional[dict] = None,
     verbose: bool = False,
     generate_code: bool = True,
     build_solver: bool = True,
@@ -27,43 +28,47 @@ def run_closed_loop_simulation(
     """
 
     :param problem:
-    :param params: should co
+    :param problem_params: should contain everything describing the problem: sampling time,
+    horizon size, number of iterations, reference points, initial state, etc.
     :param rrlb:
-    :param generate_code:
+    :param rrlb_params:
+    :param verbose: whether to print stuff or not
+    :param generate_code: whether to generate code or not
     :param build_solver:
     :param show_plot:
     :param plot_filename:
     :return:
     """
+    # check inputs ================================================================
     assert problem in {"cstr", "mass_chain"}
-    if problem == "cstr":
-        dt = params.get("dt", 20 / 3600)
-        N = params.get("N", 100)
-        Nsim = params.get("Nsim", 40)
-        x_ref_default, u_ref_default = cstr_model.find_cstr_steady_state(1)
-        x_ref = params.get("x_ref", x_ref_default)
-        u_ref = params.get("u_ref", u_ref_default)
-        xinit = params.get("xinit", np.array([1.0, 0.5, 100.0, 100.0]))
-        M = None
-        x_last = None
-    elif problem == "mass_chain":
-        dt = params.get("dt", 0.2)
-        N = params.get("N", 40)
-        Nsim = params.get("Nsim", 40)
-        M = params.get("M", 9)
-        x_last = params.get("x_last", np.array([1.0, 0.0, 0.0]))
-        x_ref = mass_chain_model.find_mass_chain_steady_state(M=M, x_last=x_last)
-        u_ref = np.zeros(3)
-        xinit = x_ref
-    else:
-        raise ValueError(f"Unknown problem: {problem}")
+    if rrlb:
+        assert rrlb_params is not None
+        assert "fun" in rrlb_params or (
+            "epsilon_0" in rrlb_params and "epsilon_rate" in rrlb_params
+        )
 
+    # set up problem ==============================================================
     # create ocp object to formulate the OCP
     if problem == "cstr":
+        dt = problem_params.get("dt", 20 / 3600)
+        N = problem_params.get("N", 100)
+        Nsim = problem_params.get("Nsim", 40)
+        x_ref_default, u_ref_default = cstr_model.find_cstr_steady_state(1)
+        x_ref = problem_params.get("x_ref", x_ref_default)
+        u_ref = problem_params.get("u_ref", u_ref_default)
+        xinit = problem_params.get("xinit", np.array([1.0, 0.5, 100.0, 100.0]))
         ocp, stuff = cstr_ocp.export_cstr_ocp(
             dt=dt, N=N, x_ref=x_ref, u_ref=u_ref, rrlb=rrlb
         )
     elif problem == "mass_chain":
+        dt = problem_params.get("dt", 0.2)
+        N = problem_params.get("N", 40)
+        Nsim = problem_params.get("Nsim", 40)
+        M = problem_params.get("M", 9)
+        x_last = problem_params.get("x_last", np.array([1.0, 0.0, 0.0]))
+        x_ref = mass_chain_model.find_mass_chain_steady_state(M=M, x_last=x_last)
+        u_ref = np.zeros(3)
+        xinit = x_ref
         ocp, stuff = mass_chain_ocp.export_mass_chain_ocp(
             dt=dt, N=N, M=M, x_last=x_last, rrlb=rrlb
         )
@@ -94,6 +99,7 @@ def run_closed_loop_simulation(
     xcurrent = xinit
     last_prediction = np.zeros((N + 1, nx + nu))
     n_convergence = Nsim + 1
+    performance_measure = 0.0
     sim_data = {
         "x_sim": [xinit],
         "u_sim": [],
@@ -101,20 +107,28 @@ def run_closed_loop_simulation(
         "epsilon": [],
         "discrepancies": [],
     }
+    sim_data["discrepancies"].append(np.linalg.norm(xcurrent - x_ref))
 
     # compute the first runtime parameters for the RRLB MPC (barrier parameter epsilon
     # and terminal cost P)
-    def compute_runtime_parameters(iteration: Optional[int] = None):
-        epsilon = (
-            params.get("epsilon_0", 30.0) * params.get("epsilon_rate", 0.9) ** iteration
-        )
-        P = solve_discrete_are(A, B, Q + epsilon * M_x, R + epsilon * M_u)
-        return np.append(epsilon, P.ravel("F"))
+    def compute_runtime_parameters(iteration: int) -> np.ndarray:
+        if rrlb:
+            if "fun" in rrlb_params:
+                return rrlb_params["fun"](iteration)
+            else:
+                epsilon = (
+                    rrlb_params.get("epsilon_0", 50.0)
+                    * rrlb_params.get("epsilon_rate", 1.0) ** iteration
+                )
+            P = solve_discrete_are(A, B, Q + epsilon * M_x, R + epsilon * M_u)
+            return np.append(epsilon, P.ravel("F"))
+        else:
+            return np.array([])
 
     if rrlb:
         ocp.parameter_values = np.zeros(nx**2 + 1)
 
-    # create an acados ocp solver (
+    # create an acados ocp solver
     if verbose:
         acados_ocp_solver = AcadosOcpSolver(
             ocp,
@@ -134,11 +148,11 @@ def run_closed_loop_simulation(
                 build=build_solver,
             )
 
-    # control loop
+    # run the control loop ========================================================
     if verbose:
         print("Running closed-loop simulation...")
 
-    for i in tqdm.trange(Nsim):
+    for i in trange(Nsim):
         # define initial guess for the solver
         if i == 0:
             # apply the reference control ur to the current state xcurrent
@@ -180,6 +194,8 @@ def run_closed_loop_simulation(
                 acados_ocp_solver.get(j, "x"), acados_ocp_solver.get(j, "u")
             )
         last_prediction[N, :] = np.append(acados_ocp_solver.get(N, "x"), u_ref)
+        if np.any(np.isnan(last_prediction)):
+            raise Exception("NaNs in prediction. Exiting.")
 
         # update simulation data
         sim_data["u_sim"].append(acados_ocp_solver.get(0, "u"))
@@ -187,25 +203,29 @@ def run_closed_loop_simulation(
         sim_data["x_sim"].append(xcurrent)
         sim_data["time_tot"].append(acados_ocp_solver.get_stats("time_tot"))
 
+        # update performance measure
+        performance_measure += np.dot(
+            np.dot(sim_data["u_sim"][-1], R), sim_data["u_sim"][-1]
+        ) + np.dot(np.dot(sim_data["x_sim"][-2], Q), sim_data["x_sim"][-2])
+
         # check if there is convergence in relative norm
-        sim_data["discrepancies"].append(
-            np.linalg.norm(xcurrent - x_ref) / np.linalg.norm(x_ref)
-        )
-        if sim_data["discrepancies"][-1] < 1.0e-6 and n_convergence == Nsim + 1:
+        sim_data["discrepancies"].append(np.linalg.norm(xcurrent - x_ref))
+        if sim_data["discrepancies"][-1] < problem_params.get("convergence_tol", 1e-4):
             n_convergence = i + 1
             if verbose:
                 print("Convergence reached at iteration {}".format(n_convergence))
-            # break
+            break
 
     if verbose:
         print("Simulation finished.")
 
+    # post-process the simulation data =============================================
     # create np.ndarrays for the simulation data
     for key, val in sim_data.items():
         if isinstance(val, list):
             sim_data[key] = np.array(val)
 
-    # plot data
+    # plot closed-loop trajectories data
     if problem == "cstr":
         cstr_plot.plot_cstr(
             ocp=ocp,
@@ -219,4 +239,5 @@ def run_closed_loop_simulation(
         )
 
     sim_data["n_convergence"] = n_convergence
+    sim_data["performance_measure"] = performance_measure
     return sim_data

@@ -5,19 +5,21 @@ from work import run_closed_loop_simulation
 
 if __name__ == "__main__":
     params = {
-        "M": 9,
+        "M": 7,
         "x_last": np.array([1.0, 0.0, 0.0]),
         "N": 40,
         "Nsim": 1000,
         "dt": 20 / 3600,
+        "epsilon_0": 100.0,
+        "epsilon_rate": 0.2,
     }
     res_reg = run_closed_loop_simulation(
         problem="mass_chain",
-        params=params,
+        problem_params=params,
         rrlb=False,
         show_plot=False,
-        generate_code=False,
-        build_solver=False,
+        # generate_code=False,
+        # build_solver=False,
     )
     # plt.suptitle("Mass Chain - Regular MPC")
     # res_rrlb = run_closed_loop_simulation(

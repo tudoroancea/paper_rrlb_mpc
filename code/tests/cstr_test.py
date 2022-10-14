@@ -19,7 +19,7 @@ def main():
     }
     res_reg = run_closed_loop_simulation(
         problem="cstr",
-        params=params,
+        problem_params=params,
         rrlb=False,
         show_plot=False,
         # generate_code=False,
@@ -28,7 +28,7 @@ def main():
     plt.suptitle("CSTR - Regular MPC")
     res_rrlb = run_closed_loop_simulation(
         problem="cstr",
-        params=params,
+        problem_params=params,
         rrlb=True,
         show_plot=False,
         # generate_code=False,
@@ -78,7 +78,7 @@ def main2():
     }
     res_var_eps = run_closed_loop_simulation(
         problem="cstr",
-        params=params,
+        problem_params=params,
         rrlb=True,
         show_plot=False,
         # generate_code=False,
@@ -88,7 +88,7 @@ def main2():
     params["epsilon_rate"] = 1.0
     res_fixed_eps = run_closed_loop_simulation(
         problem="cstr",
-        params=params,
+        problem_params=params,
         rrlb=True,
         show_plot=False,
         # generate_code=False,
