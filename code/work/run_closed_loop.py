@@ -22,6 +22,7 @@ def run_closed_loop_simulation(
     verbose: bool = False,
     generate_code: bool = True,
     build_solver: bool = True,
+    plot: bool = True,
     show_plot: bool = True,
     plot_filename: str = "",
 ) -> dict[str, Union[float, bool, np.ndarray]]:
@@ -195,7 +196,7 @@ def run_closed_loop_simulation(
             )
         last_prediction[N, :] = np.append(acados_ocp_solver.get(N, "x"), u_ref)
         if np.any(np.isnan(last_prediction)):
-            raise Exception("NaNs in prediction. Exiting.")
+            raise ValueError("NaNs in prediction. Exiting.")
 
         # update simulation data
         sim_data["u_sim"].append(acados_ocp_solver.get(0, "u"))
@@ -226,17 +227,18 @@ def run_closed_loop_simulation(
             sim_data[key] = np.array(val)
 
     # plot closed-loop trajectories data
-    if problem == "cstr":
-        cstr_plot.plot_cstr(
-            ocp=ocp,
-            x_ref=x_ref,
-            u_ref=u_ref,
-            x_sim=sim_data["x_sim"],
-            u_sim=sim_data["u_sim"],
-            dt=dt * 3600,
-            file_name=plot_filename,
-            show=show_plot,
-        )
+    if plot:
+        if problem == "cstr":
+            cstr_plot.plot_cstr(
+                ocp=ocp,
+                x_ref=x_ref,
+                u_ref=u_ref,
+                x_sim=sim_data["x_sim"],
+                u_sim=sim_data["u_sim"],
+                dt=dt * 3600,
+                file_name=plot_filename,
+                show=show_plot,
+            )
 
     sim_data["n_convergence"] = n_convergence
     sim_data["performance_measure"] = performance_measure

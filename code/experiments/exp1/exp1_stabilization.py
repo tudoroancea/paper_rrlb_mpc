@@ -27,8 +27,9 @@ def subexp1(xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]), gen: bool = 
         problem_params=params,
         rrlb=True,
         rrlb_params=rrlb_params,
+        plot=False,
         show_plot=False,
-        verbose=True,
+        verbose=False,
         generate_code=gen,
         build_solver=gen,
     )
@@ -41,7 +42,7 @@ def subexp1(xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]), gen: bool = 
 def exp1():
     # generate initial states in the following
     # 0.0 <= c_A, c_B <= 5.0 ; 98.0 <= theta <= 120.0 ; 92.0 <= theta_K <= 110.0
-    nbr_initial_states = 5
+    nbr_initial_states = 30
     initial_states = np.zeros((nbr_initial_states, 4))
     initial_states[:, 0] = np.random.random_sample(nbr_initial_states) * 6.0 + 0.1
     initial_states[:, 1] = np.random.random_sample(nbr_initial_states) * 6.0 + 0.1
@@ -62,20 +63,24 @@ def exp1():
     results = []
     print("Running exp1 on initial state n°0")
     results.append(subexp1())
-    plt.suptitle("RRLB MPC - xinit n°0")
-    for i in range(nbr_initial_states):
-        print("Running exp1 on initial state n°" + str(i + 1))
-        results.append(subexp1(initial_states[i], gen=False))
-        plt.suptitle("RRLB MPC - xinit n°" + str(i + 1))
+    for i in range(1, nbr_initial_states + 1):
+        if i != 11:
+            print("Running exp1 on initial state n°" + str(i))
+            results.append(subexp1(initial_states[i - 1], gen=False))
+        else:
+            print("Skipping exp1 on initial state n°" + str(i))
+            results.append(None)
 
     # plot results
-    plt.figure()
-    for i in range(nbr_initial_states + 1):
-        plt.plot(results[i]["discrepancies"], label=f"initial state {i}")
-    plt.legend()
-    plt.ylabel("discrepancy")
-    plt.xlabel("iteration")
-    plt.show()
+    # plt.figure()
+    # for i in range(nbr_initial_states + 1):
+    #     if i != 11:
+    #         plt.plot(results[i]["discrepancies"], label=f"initial state {i}")
+
+    # plt.legend()
+    # plt.ylabel("discrepancy")
+    # plt.xlabel("iteration")
+    # plt.show()
 
 
 if __name__ == "__main__":
