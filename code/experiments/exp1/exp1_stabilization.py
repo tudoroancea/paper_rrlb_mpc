@@ -1,4 +1,5 @@
-# The goal of the first experiment is to show that the scheme yields a local asymptotically stable system as proved theoretically.
+# The goal of the first experiment is to show that the scheme yields a local
+# asymptotically stable system as proved theoretically.
 
 import numpy as np
 from work import run_closed_loop_simulation
@@ -10,16 +11,18 @@ np.random.seed(127)
 
 def subexp1(xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]), gen: bool = True):
     x_ref, u_ref = find_cstr_steady_state(1)
+    T = 200 / 3600
+    N = 10
     params = {
-        "N": 10,
+        "N": N,
         "Nsim": 100,
-        "dt": 50 / 3600,
+        "dt": T / N,
         "x_ref": x_ref,
         "u_ref": u_ref,
         "xinit": xinit,
     }
     rrlb_params = {
-        "epsilon_0": 50.0,
+        "epsilon_0": 10.0,
         "epsilon_rate": 1.0,
     }
     results = run_closed_loop_simulation(
@@ -42,7 +45,7 @@ def subexp1(xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]), gen: bool = 
 def exp1():
     # generate initial states in the following
     # 0.0 <= c_A, c_B <= 5.0 ; 98.0 <= theta <= 120.0 ; 92.0 <= theta_K <= 110.0
-    nbr_initial_states = 30
+    nbr_initial_states = 7
     initial_states = np.zeros((nbr_initial_states, 4))
     initial_states[:, 0] = np.random.random_sample(nbr_initial_states) * 6.0 + 0.1
     initial_states[:, 1] = np.random.random_sample(nbr_initial_states) * 6.0 + 0.1
@@ -71,16 +74,24 @@ def exp1():
             print("Skipping exp1 on initial state n°" + str(i))
             results.append(None)
 
-    # plot results
-    # plt.figure()
-    # for i in range(nbr_initial_states + 1):
-    #     if i != 11:
-    #         plt.plot(results[i]["discrepancies"], label=f"initial state {i}")
+    # plot discrepancies
+    plt.figure()
+    for i in range(nbr_initial_states + 1):
+        if i != 11:
+            plt.plot(results[i]["discrepancies"], label=f"initial state {i}")
+    plt.legend()
+    plt.ylabel("discrepancy")
+    plt.xlabel("iteration")
 
-    # plt.legend()
-    # plt.ylabel("discrepancy")
-    # plt.xlabel("iteration")
-    # plt.show()
+    # plot constraint violations
+    plt.figure()
+    for i in range(nbr_initial_states + 1):
+        if i != 11:
+            plt.plot(results[i]["constraint_violations"], label=f"initial state {i}")
+    plt.legend()
+    plt.ylabel("constraint violation")
+    plt.xlabel("iteration")
+    plt.show()
 
 
 if __name__ == "__main__":

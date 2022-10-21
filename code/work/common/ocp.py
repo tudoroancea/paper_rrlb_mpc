@@ -116,11 +116,22 @@ def export_ocp(
         # declare runtime params in ocp model
         ocp.model.p = ca.vertcat(epsilon, ca.reshape(P, nx * nx, 1))
     else:
-        ocp.cost.cost_type = "LINEAR_LS"
-        ocp.cost.W = np.block([[Q, np.zeros((nx, nu))], [np.zeros((nu, nx)), R]])
-        ocp.cost.Vx = np.vstack((np.eye(nx), np.zeros((nu, nx))))
-        ocp.cost.Vu = np.vstack((np.zeros((nx, nu)), np.eye(nu)))
-        ocp.cost.yref = np.append(x_ref, u_ref)
+        # lagrange cost (quadratic costs + RRLB functions)
+        # ocp.cost.cost_type = "LINEAR_LS"
+        # ocp.cost.W = np.block([[Q, np.zeros((nx, nu))], [np.zeros((nu, nx)), R]])
+        # ocp.cost.Vx = np.vstack((np.eye(nx), np.zeros((nu, nx))))
+        # ocp.cost.Vu = np.vstack((np.zeros((nx, nu)), np.eye(nu)))
+        # ocp.cost.yref = np.append(x_ref, u_ref)
+
+        ocp.cost.cost_type = "EXTERNAL"
+        ocp.model.cost_expr_ext_cost = ca.bilin(Q, x - x_ref, x - x_ref) + ca.bilin(
+            R, u - u_ref, u - u_ref
+        )
+
+        # mayer cost (quadratic costs only)
+        # ocp.cost.cost_type_e = "EXTERNAL"
+        # P = ca.SX.sym("P", nx, nx)
+        # ocp.model.cost_expr_ext_cost_e = ca.bilin(P, x - x_ref, x - x_ref)
 
     # constraints
     ocp.constraints.x0 = np.zeros(nx)
@@ -153,6 +164,10 @@ def export_ocp(
         "M_u": M_u,
         "x_ref": x_ref,
         "u_ref": u_ref,
+        "x_ub": d_x[:nx],
+        "x_lb": -d_x[nx:],
+        "u_ub": d_u[:nu],
+        "u_lb": -d_u[nu:],
     }
 
 

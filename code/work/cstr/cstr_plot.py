@@ -89,7 +89,7 @@ def plot_cstr(
     )
 
     plt.subplot(4, 1, 3)
-    plt.step(t_u, u_sim[:, 0], "r-")
+    plt.step(t_u, u_sim[:, 0], "r-", where="post")
     plt.plot(t_u, np.ones_like(t_u) * u_ref[0], "r--")
     plt.plot(t_u, np.ones_like(t_u) * lbu[0], "r:")
     plt.plot(t_u, np.ones_like(t_u) * ubu[0], "r:")
@@ -105,7 +105,7 @@ def plot_cstr(
     )
 
     plt.subplot(4, 1, 4)
-    plt.step(t_u, u_sim[:, 1], "b-")
+    plt.step(t_u, u_sim[:, 1], "b-", where="post")
     plt.plot(t_u, np.ones_like(t_u) * u_ref[1], "b--")
     plt.plot(t_u, np.ones_like(t_u) * lbu[1], "b:")
     plt.plot(t_u, np.ones_like(t_u) * ubu[1], "b:")

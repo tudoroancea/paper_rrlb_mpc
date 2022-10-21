@@ -38,7 +38,17 @@ def run_closed_loop_simulation(
     :param build_solver:
     :param show_plot:
     :param plot_filename:
-    :return:
+    :return: sim_data contains the following keys:
+        x_sim: the state trajectory
+        u_sim: the control trajectory
+        time_tot: the total solver run time
+        epsilon: the value of epsilon used in the RRLB at each iteration
+        n_convergence: the number of iterations needed to converge
+        discrepancies: the discrepancies between the reference and current state at each
+            iteration
+        constraint_violations: the constraint violations at each iteration
+        performance_measure: the performance measure at each iteration (quadratic costs
+            on state and control)
     """
     # check inputs ================================================================
     assert problem in {"cstr", "mass_chain"}
@@ -89,6 +99,10 @@ def run_closed_loop_simulation(
     B = stuff["B"]
     M_x = stuff["M_x"]
     M_u = stuff["M_u"]
+    x_ub = stuff["x_ub"]
+    x_lb = stuff["x_lb"]
+    u_ub = stuff["u_ub"]
+    u_lb = stuff["u_lb"]
 
     # for the mass chain problem, perturb the initial state with a control [-1,1,1] for
     # 5 sampling times
@@ -107,6 +121,7 @@ def run_closed_loop_simulation(
         "time_tot": [],
         "epsilon": [],
         "discrepancies": [],
+        "constraint_violations": [],
     }
     sim_data["discrepancies"].append(np.linalg.norm(xcurrent - x_ref))
 
@@ -117,10 +132,9 @@ def run_closed_loop_simulation(
             if "fun" in rrlb_params:
                 return rrlb_params["fun"](iteration)
             else:
-                epsilon = (
-                    rrlb_params.get("epsilon_0", 50.0)
-                    * rrlb_params.get("epsilon_rate", 1.0) ** iteration
-                )
+                epsilon_0 = rrlb_params.get("epsilon_0", 50.0)
+                epsilon = epsilon_0 * rrlb_params.get("epsilon_rate", 1.0) ** iteration
+
             P = solve_discrete_are(A, B, Q + epsilon * M_x, R + epsilon * M_u)
             return np.append(epsilon, P.ravel("F"))
         else:
@@ -178,7 +192,8 @@ def run_closed_loop_simulation(
         if rrlb:
             p = compute_runtime_parameters(iteration=i)
             sim_data["epsilon"].append(p[0])
-            acados_ocp_solver.acados_ocp.parameter_values = p
+            for j in range(N + 1):
+                acados_ocp_solver.set(j, "p", p)
 
         # solve ocp
         acados_ocp_solver.set(0, "lbx", xcurrent)
@@ -202,12 +217,22 @@ def run_closed_loop_simulation(
         sim_data["u_sim"].append(acados_ocp_solver.get(0, "u"))
         xcurrent = f_disc(xcurrent, sim_data["u_sim"][-1])
         sim_data["x_sim"].append(xcurrent)
-        sim_data["time_tot"].append(acados_ocp_solver.get_stats("time_tot"))
+        sim_data["time_tot"].append(acados_ocp_solver.get_stats("time_tot")[0])
 
         # update performance measure
         performance_measure += np.dot(
-            np.dot(sim_data["u_sim"][-1], R), sim_data["u_sim"][-1]
-        ) + np.dot(np.dot(sim_data["x_sim"][-2], Q), sim_data["x_sim"][-2])
+            np.dot(sim_data["u_sim"][-1] - u_ref, R), sim_data["u_sim"][-1] - u_ref
+        ) + np.dot(
+            np.dot(sim_data["x_sim"][-2] - x_ref, Q), sim_data["x_sim"][-2] - x_ref
+        )
+
+        # update constraint violation
+        sim_data["constraint_violations"].append(
+            np.linalg.norm(np.maximum(sim_data["x_sim"][-2] - x_ub, 0.0))
+            + np.linalg.norm(np.maximum(x_lb - sim_data["x_sim"][-2], 0.0))
+            + np.linalg.norm(np.maximum(sim_data["u_sim"][-1] - u_ub, 0.0))
+            + np.linalg.norm(np.maximum(u_lb - sim_data["u_sim"][-1], 0.0))
+        )
 
         # check if there is convergence in relative norm
         sim_data["discrepancies"].append(np.linalg.norm(xcurrent - x_ref))
