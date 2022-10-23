@@ -172,12 +172,18 @@ Theoretical studies have been pursued to prove the actual legitimacy of this met
 
 At the same time, researchers also focused on simplifying the optimization problems involved in NMPC by leveraging ideas coming from classical mathematical optimization. 
 One of those is the one of replacing constraints by a logarithmic barrier functions, similarly as interior point methods (see \cite*{interior-point-methods}).
-Such modifications lead to only-equality constrained or even unconstrained optimization problems that could be in some sense "easier to solve".
-A relaxation 
- that are defined on the whole state and control space instead of just the feasible set. This was first introduced in [9,10,11,12] and was heavily studied in [linear rrlb mpc].
+Such modifications lead to equality-only-constrained or even unconstrained optimization problems that could be in some sense "easier to solve", but that still present some flaws, like the non-definition of these barrier functions outside the constraint set, which can lead to infeasible problems.
+This is usually solved by introducing soft constraints, however no theoretical guarantees can be given on the convergence of the resulting optimization problem.
+Another solution consists in \textit{relaxing} the barrier function by extending it outside the constraint set in a twice continuously differentiable fashion.
+These \textit{relaxed (recentered) logarithmic barrier functions} (RRLB functions) have been introduced in [] and heavily studied in the context of stabilization with Linear MPC in \cite{RRLB} and \cite{RRLB-linear-MPC}.
+In this simple case, it was proven that globally asymptotically stabilizing schemes can be desgined with the help of these functions, in particular by leveraging appropriate terminal costs and/or sets.
+What's more, constraint satisfaction guarantees can be derived locally around the reference state.
 
+The goal of this paper is to extend part of this results in the more general case of nonlinear dynamics.
+In particular, we are going to use the fourth scheme described in \cite{RRLB-linear-MPC}, that only uses quadratic terminal costs and no terminal constraints, show that we can ensure asymptotic stability but only in a neighborhood of the reference state (Section \ref{sec:RRLB-nominal-stability}), and show that constraint satisfaction guarantees ... (Section \ref{sec:constraints-satisfaction-guarantees}).
+We also aim at providing a numerical illustration of the theoretical results by using the RTI method and actually comparing a regular MPC scheme with its relaxed barrier function based counterpart (Section \ref{sec:numerical-experiments}).
 
-
+In this paper we will call $\calC^k$ the set of all $k$-times continuously differentiable functions, and we will call $D_xf(x,u)$ and $\nabla^2_xf(x,u)$ the jacobian and the hessian with respect to $x$ of a function $f$ defined on $R^{n_x}\times\R^{n_u}$.
 
 \section{Background material}
 
@@ -442,30 +448,8 @@ When no confusion is possible we will drop the "$(x)$".
 	The same reasoning applies on the controls.
 \end{proof}
 
-\subsection{Variable barrier parameter}
-All the previous section assumed that the barrier parameter $\epsilon$ was fixed and did not change throughout the experiment.
-However, we could want to gradually decrease it as we converge to actually reach the nominal trajectory.
-When we do so, the asymptotic stability is actually preserved.
-
-\begin{lemma}[Monotonicity of the Lyapunov functions when $\epsilon$ decreases]
-	Let $\tilde{V}_{\epsilon}$ be the Lyapunov function defined for the RRLB MPC \eqref{eq:RRLB-NMPC} with barrier parameter $\epsilon$.
-	Then for any $0<\epsilon_1<\epsilon_2$ we have $\tilde{V}_{\epsilon_1}\leq\tilde{V}_{\epsilon_2}$.
-\end{lemma}
-
-\begin{proof}
-	If we define by $\tilde{J}_{\epsilon}$ the objective function in \eqref{eq:RRLB-NMPC}, then we have $\forall \bf{x},\bf{u}$:
-	\begin{align*}
-		&\epsilon_1B_x(x_k)\leq \epsilon_2B_x(x_k),\epsilon_1B_u(u_k)\leq \epsilon_2B_u(u_k)\\
-		\implies&\tilde{J}_{\epsilon_1}(\bf{x},\bf{u})<\tilde{J}_{\epsilon_2}(\bf{x},\bf{u})\\
-		\implies&\tilde{V}_{\epsilon_1}(x)=\min_{\bf{x},\bf{u}}\tilde{J}_{\epsilon_1}(\bf{x},\bf{u})\leq\min_{\bf{x},\bf{u}}\tilde{J}_{\epsilon_2}(\bf{x},\bf{u}) = \tilde{V}_{\epsilon_2}(x)\\
-	\end{align*}
-\end{proof}
-
-\begin{theorem}
-	Let us suppose that we have run RRLB MPC in closed loop with a decreasing sequence of $\{\epsilon_k\}_{k=0}^\infty$ and that at each step, the associated Lyapunov function is $\tilde{V}_{k}$.
-	Then the system is still locally asymptotically stable.
-\end{theorem}
-
+\section{Numerical experiments}
+\label{sec:numerical-experiments}
 
 \appendix
 Lorem ipsum dolor sit amet.
