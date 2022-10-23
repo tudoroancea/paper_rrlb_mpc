@@ -193,14 +193,20 @@ def create_rrlb_function(
     tpr = []
     for i in range(q):
         z_i = d[i] - ca.dot(C[i, :], var)
-        tpr.append(ca.if_else(z_i > delta, ca.log(d_tilde[i]) - ca.log(z_i), beta(z_i)))
+        tpr.append(
+            ca.if_else(
+                z_i > delta,
+                ca.log(d_tilde[i]) - ca.log(z_i),
+                ca.log(d_tilde[i]) + beta(z_i),
+            )
+        )
 
     # compute the weight vector w
-    w = np.ones(q)
-    w[n:] = d_tilde[n:] / d_tilde[:n]
+    w = np.append(d_tilde[:n] / d_tilde[n:], d_tilde[n:] / d_tilde[:n])
+    print(w)
 
     # assemble the RRLB function B
-    B = ca.Function("B", [var], [ca.dot(w, ca.vertcat(*tpr))])
+    B = ca.Function("B", [var], [ca.dot(w + np.ones(q), ca.vertcat(*tpr))])
     grad_B = ca.Function("grad_B", [var], [ca.jacobian(B(var), var)])
     assert np.allclose(grad_B(ref), np.zeros(n))
     hess_B = ca.Function("hess_B", [var], [ca.hessian(B(var), var)[0]])

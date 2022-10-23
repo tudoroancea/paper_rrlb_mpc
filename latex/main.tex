@@ -16,6 +16,7 @@
 \usepackage{hyperref}
 
 % *** MISCALLENOUS ***
+\usepackage{subcaption}
 \usepackage{enumitem}
 \usepackage{graphicx} % to manage images
 
@@ -143,7 +144,7 @@
 \title{Study of the properties of the Relaxed Recentered Log-Barrier function based Nonlinear Model Predictive Control (RRLB NMPC)}
 
 % author names 
-\author{Tudor Oancea}% <-this % stops a space
+\author{Tudor Oancea, Yuning Jiang}% <-this % stops a space
         
 
 % make the title area
@@ -152,11 +153,28 @@
 % As a general rule, do not put math, special symbols or citations
 % in the abstract or keywords.
 \begin{abstract}
-    Lorem ipsum dolor sit amet.
+
+    % In this paper, we investigate the use of relaxed recentered logarithmic barrier functions in the context of nonlinear model predictive control.
+	% These functions are a variation of the regular log-barrier functions that are introduced in the objective function of an optimization problem as a penalty on the deviation from the constraints set.
+	% The resulting new MPC scheme has been studied in the case of linear dynamics, and several interesting results on the global nominal asymptotic stability of the corresponding closed-loop system and on constraint satisfaction guarantees have been obtained.
+	% Extending them to the case of nonlinear dynamics is a non trivial task and we show in this project that these properties can still hold, but only locally.
+	% The theoretical results are complemented by numerical illustrations based on the Real Time Iteration method.
 \end{abstract}
 
 \section{Introduction}
-Lorem ipsum dolor sit amet.
+Nowadays, model predictive control is a very important control framework that has been extensively studied in the last few decades for its capability of handling complex constrained multi-input multi-output systems which are omnipresent in real-life contexts. 
+The theory and mechanisms of linear model predictive control is now well understood and there are numerous examples of successful industrial applications, the most obvious one being chemical plants.
+Nonlinear model predictive control (NMPC) theory is however much less mature and is still an active field of research.
+
+Great effort has been put in the last decade to develop practical implementations of NMPC that are real-time capable, i.e. that can be deployed on embedded platforms which have to solve the optimization problem online at frequencies in the kHz range.
+One of the most important of such methods is certainly Real Time Iteration (RTI) that was first introduced by M. Diehl in \cite*{rti-diehl} and which solves the nonlinear optimization problem by solving a single quadratic program approximation at each call.
+Theoretical studies have been pursued to prove the actual legitimacy of this method in \cite{rti-diehl-stability} and it is today implemented in well known NMPC software packages like acados (see original paper \cite*{acados}).
+
+At the same time, researchers also focused on simplifying the optimization problems involved in NMPC by leveraging ideas coming from classical mathematical optimization. 
+One of those is the one of replacing constraints by a logarithmic barrier functions, similarly as interior point methods (see \cite*{interior-point-methods}).
+Such modifications lead to only-equality constrained or even unconstrained optimization problems that could be in some sense "easier to solve".
+A relaxation 
+ that are defined on the whole state and control space instead of just the feasible set. This was first introduced in [9,10,11,12] and was heavily studied in [linear rrlb mpc].
 
 
 
@@ -207,7 +225,14 @@ An illustration of this relaxation procedure can be found in figure~\ref{fig:RRL
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.5\textwidth]{images/rrlb-functions.png}
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{images/quad-extension.png}
+	\end{subfigure}%
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{images/rrlb-functions.png}
+	\end{subfigure}
 	\caption{\textit{(Left)}: Principle of relaxed log barrier function based on quadratic relaxation. (\textit{Right}): Regular weight recentered log barrier function (solid line) and RRLB function for $\delta\in\left\{ 0.01,0.1,0.5,1 \right\}$ for the constraint $z\in\R,~-1\leq z\leq 2$}
 	\label{fig:RRLB-functions}
 \end{figure}
