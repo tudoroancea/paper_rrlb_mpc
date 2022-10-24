@@ -2,8 +2,8 @@
 # NMPC to show the advantages our new scheme has.
 
 import numpy as np
-from work import run_closed_loop_simulation
-from work.cstr import find_cstr_steady_state
+from rrlb import run_closed_loop_simulation
+from rrlb.cstr import find_cstr_steady_state
 import matplotlib.pyplot as plt
 
 np.random.seed(127)
