@@ -1,11 +1,20 @@
+# specfics
+resources
+rrlb-functions.ggb
+code
+
+# ide config files
 .vscode
 .idea
+
 # python stuff
+venv*
 *.pyc
 __pycache__
 *.egg-info
 *.egg
-latex/main.*
-!latex/main.pdf
-!latex/main.tex
-resources
+
+# acados stuff
+c_generated_code
+*.json
+**/*_gen_code_*
