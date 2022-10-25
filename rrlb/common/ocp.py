@@ -203,7 +203,6 @@ def create_rrlb_function(
 
     # compute the weight vector w
     w = np.append(d_tilde[:n] / d_tilde[n:], d_tilde[n:] / d_tilde[:n])
-    print(w)
 
     # assemble the RRLB function B
     B = ca.Function("B", [var], [ca.dot(w + np.ones(q), ca.vertcat(*tpr))])

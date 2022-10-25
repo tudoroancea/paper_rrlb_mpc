@@ -1,5 +1,8 @@
 # The goal of the fourth experiment is to investigate how where the constraint
 # violations appear.
+import itertools
+import os.path
+from time import perf_counter
 
 import numpy as np
 from rrlb import run_closed_loop_simulation
@@ -9,7 +12,11 @@ import matplotlib.pyplot as plt
 np.random.seed(127)
 
 
-def subexp4(epsilon_rate: float = 1.0):
+def subexp4(
+    xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]),
+    epsilon: float = 30.0,
+    build: bool = True,
+):
     x_ref, u_ref = find_cstr_steady_state(1)
     T = 200 / 3600
     N = 10
@@ -19,11 +26,11 @@ def subexp4(epsilon_rate: float = 1.0):
         "dt": T / N,
         "x_ref": x_ref,
         "u_ref": u_ref,
-        "xinit": np.array([1.0, 0.5, 100.0, 100.0]),
+        "xinit": xinit,
     }
     rrlb_params = {
-        "epsilon_0": 30.0,
-        "epsilon_rate": epsilon_rate,
+        "epsilon_0": epsilon,
+        "epsilon_rate": 1.0,
     }
     results = run_closed_loop_simulation(
         problem="cstr",
@@ -33,53 +40,83 @@ def subexp4(epsilon_rate: float = 1.0):
         plot=False,
         show_plot=False,
         verbose=False,
+        generate_code=build,
+        build_solver=build,
     )
     # print info on the run
-    print(
-        "Average runtime: {} ± {} ms".format(
-            1000 * np.mean(results["time_tot"]), 1000 * np.std(results["time_tot"])
-        )
-    )
-    print("Performance measure: {}".format(results["performance_measure"]))
+    # print(
+    #     "Average runtime: {} ± {} ms".format(
+    #         1000 * np.mean(results["time_tot"]), 1000 * np.std(results["time_tot"])
+    #     )
+    # )
+    # print("Performance measure: {}".format(results["performance_measure"]))
 
-    return results
+    return np.sum(results["constraint_violations"])
 
 
 def exp4():
-    res_fixed_eps = subexp4(epsilon_rate=1.0)
-    # plt.suptitle("Running RRLB NMPC - fixed epsilon")
-    res_decreasing_eps = subexp4(epsilon_rate=0.4)
-    # plt.suptitle("Running RRLB NMPC - decreasing epsilon")
+    n = 10
+    epsilon = 30.0
 
-    # plot discrepancies
-    plt.figure()
-    plt.plot(res_fixed_eps["discrepancies"], label="fixed $\epsilon$")
-    plt.plot(res_decreasing_eps["discrepancies"], label="decreasing $\epsilon$")
-    plt.legend()
-    plt.ylabel("discrepancy")
-    plt.xlabel("iteration")
+    try:
+        start = perf_counter()
+        initial_states = np.load("exp4_initial_states.npy")
+        assert initial_states.shape == (n, n, n, n, 4)
+        stop = perf_counter()
+        print("Imported initial states in {} ms".format(stop - start))
+    except:
+        start = perf_counter()
+        c_A_init = np.linspace(0.0, 10.0, 10)
+        c_B_init = np.linspace(0.0, 10.0, 10)
+        theta_init = np.linspace(98.0, 150.0, 10)
+        theta_K_init = np.linspace(92.0, 150.0, 10)
+        initial_states = np.zeros((n, n, n, n, 4))
+        for i in range(n):
+            for j in range(n):
+                for k in range(n):
+                    for l in range(n):
+                        initial_states[i, j, k, l, :] = np.array(
+                            [c_A_init[i], c_B_init[j], theta_init[k], theta_K_init[l]]
+                        )
+
+        # initial_states = np.dstack(
+        #     np.meshgrid(c_A_init, c_B_init, theta_init, theta_K_init)
+        # ).reshape(-1, 4)
+        np.save("exp4_initial_states.npy", initial_states)
+        stop = perf_counter()
+        print(
+            "Created and dumped initial states in {} ms".format(1000 * (stop - start))
+        )
+
+    nbr_initial_states = initial_states.shape[0]
+
+    # run simulations
+    start = perf_counter()
+    results = np.zeros((n, n, n, n))
+    subexp4()
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                for l in range(n):
+                    try:
+                        print(
+                            "Running exp4 on initial state {},{},{},{}".format(
+                                i, j, k, l
+                            )
+                        )
+                        results[i, j, k, l] = subexp4(
+                            initial_states[i, j, k, l, :],
+                            build=False,
+                        )
+                    except ValueError as e:
+                        print("Error: {}\n putting None".format(e))
+                        results[i, j, k, l] = np.nan
+
+    stop = perf_counter()
+    print("ran all experiments in {} s".format(stop - start))
 
     # plot constraint violations
-    plt.figure()
-    plt.plot(res_fixed_eps["constraint_violations"], label=f"fixed $\epsilon$")
-    plt.plot(
-        res_decreasing_eps["constraint_violations"], label=f"decreasing $\epsilon$"
-    )
-    plt.legend()
-    plt.ylabel("constraint violation")
-    plt.xlabel("iteration")
-
-    # plot runtimes
-    plt.figure()
-    plt.boxplot(
-        1000 * np.array([res_fixed_eps["time_tot"], res_decreasing_eps["time_tot"]]).T,
-        labels=["fixed $\epsilon$", "decreasing $\epsilon$"],
-    )
-    plt.legend()
-    plt.ylabel("runtime [ms]")
-    plt.xlabel("iteration")
-
-    plt.show()
+    np.save("exp4_constraint_violations.npy", results)
 
 
 if __name__ == "__main__":

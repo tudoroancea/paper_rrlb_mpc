@@ -167,7 +167,8 @@ def run_closed_loop_simulation(
     if verbose:
         print("Running closed-loop simulation...")
 
-    for i in trange(Nsim):
+    # for i in trange(Nsim):
+    for i in range(Nsim):
         # define initial guess for the solver
         if i == 0:
             # apply the reference control ur to the current state xcurrent
