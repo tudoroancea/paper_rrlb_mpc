@@ -60,16 +60,18 @@ def exp4():
 
     try:
         start = perf_counter()
-        initial_states = np.load("exp4_initial_states.npy")
+        initial_states = np.load(
+            "exp4_initial_states_{}_{}.npy".format(n, int(epsilon))
+        )
         assert initial_states.shape == (n, n, n, n, 4)
         stop = perf_counter()
         print("Imported initial states in {} ms".format(stop - start))
     except:
         start = perf_counter()
-        c_A_init = np.linspace(0.0, 10.0, 10)
-        c_B_init = np.linspace(0.0, 10.0, 10)
-        theta_init = np.linspace(98.0, 150.0, 10)
-        theta_K_init = np.linspace(92.0, 150.0, 10)
+        c_A_init = np.linspace(0.0, 10.0, n)
+        c_B_init = np.linspace(0.0, 10.0, n)
+        theta_init = np.linspace(98.0, 150.0, n)
+        theta_K_init = np.linspace(92.0, 150.0, n)
         initial_states = np.zeros((n, n, n, n, 4))
         for i in range(n):
             for j in range(n):
@@ -79,16 +81,11 @@ def exp4():
                             [c_A_init[i], c_B_init[j], theta_init[k], theta_K_init[l]]
                         )
 
-        # initial_states = np.dstack(
-        #     np.meshgrid(c_A_init, c_B_init, theta_init, theta_K_init)
-        # ).reshape(-1, 4)
-        np.save("exp4_initial_states.npy", initial_states)
+        np.save("exp4_initial_states_{}_{}.npy".format(n, int(epsilon)), initial_states)
         stop = perf_counter()
         print(
             "Created and dumped initial states in {} ms".format(1000 * (stop - start))
         )
-
-    nbr_initial_states = initial_states.shape[0]
 
     # run simulations
     start = perf_counter()
@@ -116,7 +113,7 @@ def exp4():
     print("ran all experiments in {} s".format(stop - start))
 
     # plot constraint violations
-    np.save("exp4_constraint_violations.npy", results)
+    np.save("exp4_constraint_violations_{}_{}.npy".format(n, int(epsilon)), results)
 
 
 if __name__ == "__main__":
