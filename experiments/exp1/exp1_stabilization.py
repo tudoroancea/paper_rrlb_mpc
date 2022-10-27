@@ -12,25 +12,21 @@ np.random.seed(127)
 
 def subexp1(xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]), gen: bool = True):
     x_ref, u_ref = find_cstr_steady_state(1)
-    T = 200 / 3600
-    N = 10
-    params = {
-        "N": N,
-        "Nsim": 100,
-        "dt": T / N,
-        "x_ref": x_ref,
-        "u_ref": u_ref,
-        "xinit": xinit,
-    }
-    rrlb_params = {
-        "epsilon_0": 30.0,
-        "epsilon_rate": 1.0,
-    }
     results = run_closed_loop_simulation(
         problem="cstr",
-        problem_params=params,
+        problem_params={
+            "N": 10,
+            "Nsim": 100,
+            "dt": 20 / 3600,
+            "x_ref": x_ref,
+            "u_ref": u_ref,
+            "xinit": xinit,
+        },
         rrlb=True,
-        rrlb_params=rrlb_params,
+        rrlb_params={
+            "epsilon_0": 30.0,
+            "epsilon_rate": 1.0,
+        },
         plot=False,
         show_plot=False,
         verbose=False,
