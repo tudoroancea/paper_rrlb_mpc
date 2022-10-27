@@ -15,11 +15,8 @@ def treatment(n: int, epsilon: float):
 
     # extract 2D slice from 4D array and make a scatter plot of constraint violations vs. initial states
     # theta, theta_K fixed
-    plt.style.use(["science", "ieee"])
-    plt.rcParams.update({"figure.dpi": "100"})
     I = initial_states[:, :, [0, 1]]
     C = constraint_violations
-    plt.figure()
     plt.scatter(
         I[:, :, 0].ravel(),
         I[:, :, 1].ravel(),
@@ -32,8 +29,14 @@ def treatment(n: int, epsilon: float):
 
 
 if __name__ == "__main__":
+    plt.style.use(["science", "ieee"])
+    plt.rcParams.update({"figure.dpi": "100"})
+    fig, _ = plt.subplots(1, 2)
+    fig.set_size_inches(10, 5)
+    plt.subplot(1, 2, 1)
     treatment(30, 1.0)
+    plt.subplot(1, 2, 2)
     treatment(30, 10.0)
-    treatment(30, 30.0)
-    treatment(30, 100.0)
+    plt.tight_layout()
+    plt.savefig("exp3.png", dpi=300, format="png", bbox_inches="tight")
     plt.show()

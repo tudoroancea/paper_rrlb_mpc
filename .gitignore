@@ -2,6 +2,9 @@
 resources
 rrlb-functions.ggb
 code
+*.npy
+*.csv
+*.png
 
 # ide config files
 .vscode
