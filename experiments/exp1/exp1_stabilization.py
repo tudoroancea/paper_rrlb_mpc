@@ -5,6 +5,7 @@ import numpy as np
 from rrlb import run_closed_loop_simulation
 from rrlb.cstr import find_cstr_steady_state
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 np.random.seed(127)
 
@@ -22,7 +23,7 @@ def subexp1(xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]), gen: bool = 
         "xinit": xinit,
     }
     rrlb_params = {
-        "epsilon_0": 10.0,
+        "epsilon_0": 30.0,
         "epsilon_rate": 1.0,
     }
     results = run_closed_loop_simulation(
@@ -36,19 +37,21 @@ def subexp1(xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]), gen: bool = 
         generate_code=gen,
         build_solver=gen,
     )
-    # print average runtime
-    print("Average runtime: {} ms".format(1000 * np.mean(results["time_tot"])))
 
     return results
 
 
 def exp1():
-    # generate initial states in the following
-    # 0.0 <= c_A, c_B <= 5.0 ; 98.0 <= theta <= 120.0 ; 92.0 <= theta_K <= 110.0
-    nbr_initial_states = 7
+    # generate initial states in the following bounding box:
+    # 0.1 <= c_A, c_B <= 6.0 ; 100.0 <= theta <= 140.0 ; 95.0 <= theta_K <= 140.0
+    nbr_initial_states = 5
     initial_states = np.zeros((nbr_initial_states, 4))
-    initial_states[:, 0] = np.random.random_sample(nbr_initial_states) * 6.0 + 0.1
-    initial_states[:, 1] = np.random.random_sample(nbr_initial_states) * 6.0 + 0.1
+    initial_states[:, 0] = (
+        np.random.random_sample(nbr_initial_states) * (6.0 - 0.1) + 0.1
+    )
+    initial_states[:, 1] = (
+        np.random.random_sample(nbr_initial_states) * (6.0 - 0.1) + 0.1
+    )
     initial_states[:, 2] = (
         np.random.random_sample(nbr_initial_states) * (140.0 - 100.0) + 100.0
     )
@@ -75,22 +78,17 @@ def exp1():
             results.append(None)
 
     # plot discrepancies
-    plt.figure()
+    plt.style.use(["science", "ieee"])
+    plt.rcParams.update({"figure.dpi": "100"})
+    plt.figure(figsize=(6.4, 4.8))
     for i in range(nbr_initial_states + 1):
-        if i != 11:
+        if results[i] is not None:
             plt.plot(results[i]["discrepancies"], label=f"initial state {i}")
-    plt.legend()
-    plt.ylabel("discrepancy")
-    plt.xlabel("iteration")
 
-    # plot constraint violations
-    plt.figure()
-    for i in range(nbr_initial_states + 1):
-        if i != 11:
-            plt.plot(results[i]["constraint_violations"], label=f"initial state {i}")
-    plt.legend()
-    plt.ylabel("constraint violation")
+    plt.ylabel(r"distance to $x^*$")
     plt.xlabel("iteration")
+    plt.savefig("exp1_discrepancies.png", bbox_inches="tight", dpi=300)
+
     plt.show()
 
 

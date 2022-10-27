@@ -1,5 +1,6 @@
 import io
 from contextlib import redirect_stdout
+from time import perf_counter
 from typing import Union, Optional
 
 import numpy as np
@@ -144,24 +145,17 @@ def run_closed_loop_simulation(
         ocp.parameter_values = np.zeros(nx**2 + 1)
 
     # create an acados ocp solver
-    if verbose:
+    start = perf_counter()
+    with io.StringIO() as buffer, redirect_stdout(buffer):
         acados_ocp_solver = AcadosOcpSolver(
             ocp,
             json_file=ocp.model.name + "_ocp_" + ("rrlb" if rrlb else "reg") + ".json",
             generate=generate_code,
             build=build_solver,
         )
-    else:
-        with io.StringIO() as buffer, redirect_stdout(buffer):
-            acados_ocp_solver = AcadosOcpSolver(
-                ocp,
-                json_file=ocp.model.name
-                + "_ocp_"
-                + ("rrlb" if rrlb else "reg")
-                + ".json",
-                generate=generate_code,
-                build=build_solver,
-            )
+    end = perf_counter()
+    if generate_code or build_solver:
+        print(f"acados ocp solver built in {end - start:.2f} seconds")
 
     # run the control loop ========================================================
     if verbose:

@@ -24,18 +24,8 @@ def plot_cstr(
     # dashed line: reference values
     # dotted line: bounds
 
-    params = {
-        # "backend": "ps",
-        "text.usetex": True,
-        "text.latex.preamble": r"\usepackage{gensymb} \usepackage{amsmath}",
-        # "axes.labelsize": 10,
-        # "axes.titlesize": 10,
-        # "legend.fontsize": 10,
-        # "xtick.labelsize": 10,
-        # "ytick.labelsize": 10,
-        "font.family": "serif",
-    }
-    mpl.rcParams.update(params)
+    plt.style.use(["science", "ieee"])
+    plt.rcParams.update({"figure.dpi": "100"})
 
     t_x = np.linspace(0, dt * (x_sim.shape[0] - 1), x_sim.shape[0])
     t_u = np.linspace(0, dt * (u_sim.shape[0] - 1), u_sim.shape[0])
@@ -122,10 +112,9 @@ def plot_cstr(
     )
 
     plt.tight_layout()
-    plt.grid()
 
     if file_name != "":
-        plt.savefig(file_name, dpi=300, format="png")
+        plt.savefig(file_name, dpi=300, format="png", bbox_inches="tight")
 
     if show:
         plt.show()
