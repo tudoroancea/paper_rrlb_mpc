@@ -1,5 +1,6 @@
 # The goal of the second experiment is to compare the behaviors of regular NMPC and RRLB
 # NMPC to show the advantages our new scheme has.
+import sys
 
 import numpy as np
 from rrlb import run_closed_loop_simulation
@@ -56,7 +57,7 @@ def exp2():
     rrlb_perf = res_rrlb["performance_measure"]
     print("RRLB performance: {}".format(rrlb_perf))
     for i in range(100):
-        print("Run {}".format(i + 1))
+        sys.stdout.write("Run {}\r".format(i + 1))
         res_rrlb = subexp2(rrlb=True, build=False)
         rrlb_runtimes.append(res_rrlb["time_tot"])
 
@@ -74,7 +75,7 @@ def exp2():
     reg_perf = res_reg["performance_measure"]
     print("Regular performance: {}".format(reg_perf))
     for i in range(100):
-        print("Run {}".format(i + 1))
+        sys.stdout.write("Run {}\r".format(i + 1))
         res_reg = subexp2(rrlb=False, build=False)
         reg_runtimes.append(res_reg["time_tot"])
 
@@ -101,12 +102,12 @@ def exp2():
     plt.xlabel("iteration")
 
     # plot constraint violations
-    plt.figure()
-    plt.plot(res_rrlb["constraint_violations"], label=f"RRLB NMPC")
-    plt.plot(res_reg["constraint_violations"], label=f"Regular NMPC")
-    plt.legend()
-    plt.ylabel("constraint violation")
-    plt.xlabel("iteration")
+    # plt.figure()
+    # plt.plot(res_rrlb["constraint_violations"], label=f"RRLB NMPC")
+    # plt.plot(res_reg["constraint_violations"], label=f"Regular NMPC")
+    # plt.legend()
+    # plt.ylabel("constraint violation")
+    # plt.xlabel("iteration")
 
     # plot runtimes
     # plt.figure()

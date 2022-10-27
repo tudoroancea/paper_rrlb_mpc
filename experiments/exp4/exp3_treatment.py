@@ -1,7 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-from matplotlib.figure import Figure
+import numpy as np
 
 plt.rcParams.update(
     {
@@ -11,15 +9,30 @@ plt.rcParams.update(
     }
 )
 
-if __name__ == "__main__":
-    initial_states = np.load("exp4_initial_states_20_30.npy")
-    constraint_violations = np.load("exp4_constraint_violations_20_30.npy")
+
+def treatment(n: int, epsilon: float):
+    initial_states = np.load("exp3_initial_states_{}_{}.npy".format(n, int(epsilon)))
+    constraint_violations = np.load(
+        "exp3_constraint_violations_{}_{}.npy".format(n, int(epsilon))
+    )
+    print(
+        "proportion of NaNs in constraint violations: {}".format(
+            np.count_nonzero(np.isnan(constraint_violations))
+            / constraint_violations.size
+        )
+    )
+    # find the initial states with NaN in constraint violations
+    nan_indices = np.random.permutation(np.argwhere(np.isnan(constraint_violations)))[
+        :10
+    ]
+    print("nan indices: {}".format(nan_indices))
+
     c_A_init = initial_states[:, 0, 0, 0, 0]
     c_B_init = initial_states[0, :, 0, 0, 1]
     theta_init = initial_states[0, 0, :, 0, 2]
     theta_K_init = initial_states[0, 0, 0, :, 3]
 
-    xinit = np.array([1.0, 5.0, 100.0, 100.0])
+    xinit = np.array([4.0, 5.0, 120.0, 120.0])
     # find the index of the initial state that is the closest to np.array([1.0, 0.5, 100.0, 100.0])
     idx = np.argmin(
         np.linalg.norm(
@@ -49,7 +62,7 @@ if __name__ == "__main__":
     # theta_id = 8
     # theta_K_id = 6
     plt.subplots(2, 3)
-    plt.suptitle(r"$\epsilon=30.0$")
+    plt.suptitle(r"$\epsilon={}$".format(epsilon))
     # theta, theta_K fixed
     plt.subplot(2, 3, 1)
     I = initial_states[:, :, theta_id, theta_K_id, [0, 1]]
@@ -159,4 +172,10 @@ if __name__ == "__main__":
     )
 
     plt.tight_layout(pad=0.1, w_pad=0.1, h_pad=0.2)
+
+
+if __name__ == "__main__":
+    treatment(10, 30.0)
+    treatment(20, 30.0)
+    # treatment(10, 50.0)
     plt.show()

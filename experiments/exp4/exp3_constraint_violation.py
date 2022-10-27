@@ -1,18 +1,16 @@
-# The goal of the fourth experiment is to investigate how where the constraint
+# The goal of the third experiment is to investigate how where the constraint
 # violations appear.
-import itertools
-import os.path
 from time import perf_counter
 
 import numpy as np
+
 from rrlb import run_closed_loop_simulation
 from rrlb.cstr import find_cstr_steady_state
-import matplotlib.pyplot as plt
 
 np.random.seed(127)
 
 
-def subexp4(
+def subexp3(
     xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]),
     epsilon: float = 30.0,
     build: bool = True,
@@ -43,25 +41,17 @@ def subexp4(
         generate_code=build,
         build_solver=build,
     )
-    # print info on the run
-    # print(
-    #     "Average runtime: {} ± {} ms".format(
-    #         1000 * np.mean(results["time_tot"]), 1000 * np.std(results["time_tot"])
-    #     )
-    # )
-    # print("Performance measure: {}".format(results["performance_measure"]))
-
     return np.sum(results["constraint_violations"])
 
 
-def exp4():
+def exp3():
     n = 10
     epsilon = 30.0
 
     try:
         start = perf_counter()
         initial_states = np.load(
-            "exp4_initial_states_{}_{}.npy".format(n, int(epsilon))
+            "exp3_initial_states_{}_{}.npy".format(n, int(epsilon))
         )
         assert initial_states.shape == (n, n, n, n, 4)
         stop = perf_counter()
@@ -81,7 +71,7 @@ def exp4():
                             [c_A_init[i], c_B_init[j], theta_init[k], theta_K_init[l]]
                         )
 
-        np.save("exp4_initial_states_{}_{}.npy".format(n, int(epsilon)), initial_states)
+        np.save("exp3_initial_states_{}_{}.npy".format(n, int(epsilon)), initial_states)
         stop = perf_counter()
         print(
             "Created and dumped initial states in {} ms".format(1000 * (stop - start))
@@ -90,18 +80,18 @@ def exp4():
     # run simulations
     start = perf_counter()
     results = np.zeros((n, n, n, n))
-    subexp4()
+    subexp3()
     for i in range(n):
         for j in range(n):
             for k in range(n):
                 for l in range(n):
                     try:
                         print(
-                            "Running exp4 on initial state {},{},{},{}".format(
+                            "Running exp3 on initial state {},{},{},{}".format(
                                 i, j, k, l
                             )
                         )
-                        results[i, j, k, l] = subexp4(
+                        results[i, j, k, l] = subexp3(
                             initial_states[i, j, k, l, :],
                             build=False,
                         )
@@ -113,8 +103,8 @@ def exp4():
     print("ran all experiments in {} s".format(stop - start))
 
     # plot constraint violations
-    np.save("exp4_constraint_violations_{}_{}.npy".format(n, int(epsilon)), results)
+    np.save("exp3_constraint_violations_{}_{}.npy".format(n, int(epsilon)), results)
 
 
 if __name__ == "__main__":
-    exp4()
+    exp3()

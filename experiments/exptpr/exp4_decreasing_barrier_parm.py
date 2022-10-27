@@ -1,4 +1,4 @@
-# The goal of the third experiment is to compare the behaviors of RRLB NMPC with fixed
+# The goal of the fourth experiment is to compare the behaviors of RRLB NMPC with fixed
 # and decreasing barrier parameter epsilon.
 
 import numpy as np
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 np.random.seed(127)
 
 
-def subexp3(epsilon_rate: float = 1.0, build: bool = True):
+def subexp4(epsilon_rate: float = 1.0, build: bool = True):
     x_ref, u_ref = find_cstr_steady_state(1)
     T = 200 / 3600
     N = 10
@@ -47,14 +47,13 @@ def subexp3(epsilon_rate: float = 1.0, build: bool = True):
     return results
 
 
-def exp3():
+def exp4():
     print("Run 0")
-    res_fixed_eps = subexp3(epsilon_rate=1.0, build=True)
+    res_fixed_eps = subexp4(epsilon_rate=1.0, build=True)
     fixed_eps_runtimes = [res_fixed_eps["time_tot"]]
     fixed_eps_perf = res_fixed_eps["performance_measure"]
     print("Fixed epsilon performance: {}".format(fixed_eps_perf))
     for i in range(100):
-        print("Run {}".format(i + 1))
         res_fixed_eps = subexp3(epsilon_rate=1.0, build=False)
         fixed_eps_runtimes.append(res_fixed_eps["time_tot"])
 
@@ -71,7 +70,6 @@ def exp3():
     decreasing_eps_perf = res_decreasing_eps["performance_measure"]
     print("Decreasing epsilon performance: {}".format(decreasing_eps_perf))
     for i in range(100):
-        print("Run {}".format(i + 1))
         res_decreasing_eps = subexp3(epsilon_rate=0.4, build=False)
         decreasing_eps_runtimes.append(res_decreasing_eps["time_tot"])
 
@@ -113,4 +111,4 @@ def exp3():
 
 
 if __name__ == "__main__":
-    exp3()
+    exp4()
