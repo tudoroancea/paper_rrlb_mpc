@@ -7,8 +7,8 @@ def treatment(n: int, epsilon: float):
     constraint_violations = np.load(
         "exp3_constraint_violations_{}_{}.npy".format(n, int(epsilon))
     )
-    c_A_init = initial_states[:, 0, 0]
-    c_B_init = initial_states[0, :, 0]
+    # c_A_init = initial_states[:, 0, 0]
+    # c_B_init = initial_states[0, :, 0]
     print(
         "theta={}, theta_K={}".format(initial_states[0, 0, 2], initial_states[0, 0, 3])
     )
@@ -32,8 +32,8 @@ def treatment(n: int, epsilon: float):
 
 
 if __name__ == "__main__":
-    treatment(30, 0.0)
     treatment(30, 1.0)
+    treatment(30, 10.0)
+    treatment(30, 30.0)
     treatment(30, 100.0)
-    treatment(30, 1000.0)
     plt.show()

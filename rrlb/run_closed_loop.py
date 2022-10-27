@@ -6,6 +6,7 @@ from typing import Union, Optional
 import numpy as np
 from acados_template import AcadosOcpSolver
 from casadi import Function
+from matplotlib import pyplot as plt
 from scipy.linalg import solve_discrete_are
 from tqdm import trange
 

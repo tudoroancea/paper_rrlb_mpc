@@ -4,6 +4,7 @@ import sys
 from time import perf_counter
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 from rrlb import run_closed_loop_simulation
 from rrlb.cstr import find_cstr_steady_state
@@ -35,11 +36,7 @@ def subexp3(
         generate_code=build,
         build_solver=build,
     )
-    res = np.sum(results["constraint_violations"])
-    if res >= 100.0:
-        print("constraints violated for xinit={}".format(xinit))
-        print(res)
-        pass
+    return np.sum(results["constraint_violations"])
 
 
 def exp3(n: int, epsilon: float):
@@ -81,14 +78,10 @@ def exp3(n: int, epsilon: float):
                 sys.stdout.write("Running exp3 on initial state {},{}\r".format(i, j))
                 results[i, j] = subexp3(
                     initial_states[i, j, :],
+                    epsilon=epsilon,
                     build=False,
                 )
-                if results[i, j] >= 100.0:
-                    print(i, j)
-                    # print(initial_states[i, j, :])
-                    # print(results[i, j])
-                    results[i, j] = np.nan
-            except ValueError as e:
+            except ValueError:
                 results[i, j] = np.nan
 
     stop = perf_counter()
@@ -99,4 +92,7 @@ def exp3(n: int, epsilon: float):
 
 
 if __name__ == "__main__":
-    exp3(n=30, epsilon=0.0)
+    # exp3(n=30, epsilon=1.0)
+    exp3(n=30, epsilon=10.0)
+    exp3(n=30, epsilon=30.0)
+    exp3(n=30, epsilon=100.0)
