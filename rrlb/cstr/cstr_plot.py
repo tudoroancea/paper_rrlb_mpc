@@ -30,7 +30,7 @@ def plot_cstr(
     t_x = np.linspace(0, dt * (x_sim.shape[0] - 1), x_sim.shape[0])
     t_u = np.linspace(0, dt * (u_sim.shape[0] - 1), u_sim.shape[0])
 
-    plt.figure(figsize=(12, 8))
+    # plt.figure(figsize=(12, 8))
 
     plt.subplot(4, 1, 1)
     plt.plot(t_x, x_sim[:, 0], "r-")

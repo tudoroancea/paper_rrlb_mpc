@@ -25,18 +25,18 @@ def treatment(n: int, epsilon: float):
     plt.colorbar()
     plt.xlabel(r"$c_A$")
     plt.ylabel(r"$c_B$")
+    plt.axis("equal")
     plt.title(r"$\epsilon={}$".format(epsilon))
 
 
 if __name__ == "__main__":
     plt.style.use(["science", "ieee"])
-    plt.rcParams.update({"figure.dpi": "100"})
-    fig, _ = plt.subplots(1, 2)
-    fig.set_size_inches(10, 5)
+    plt.rcParams.update({"figure.dpi": "100", "font.size": 20, "lines.markersize": 3})
+    fig = plt.figure(figsize=(10, 4))
     plt.subplot(1, 2, 1)
     treatment(30, 1.0)
     plt.subplot(1, 2, 2)
     treatment(30, 10.0)
-    plt.tight_layout()
+    plt.tight_layout(pad=0.0)
     plt.savefig("exp3.png", dpi=300, format="png", bbox_inches="tight")
     plt.show()

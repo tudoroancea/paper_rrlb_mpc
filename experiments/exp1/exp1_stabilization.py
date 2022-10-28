@@ -64,7 +64,7 @@ def exp1():
     # run simulations
     results = []
     print("Running exp1 on initial state n°0")
-    results.append(subexp1())
+    results.append(subexp1(gen=False))
     for i in range(1, nbr_initial_states + 1):
         if i != 11:
             print("Running exp1 on initial state n°" + str(i))
@@ -75,8 +75,8 @@ def exp1():
 
     # plot discrepancies
     plt.style.use(["science", "ieee"])
-    plt.rcParams.update({"figure.dpi": "100"})
-    plt.figure(figsize=(6.4, 4.8))
+    plt.rcParams.update({"figure.dpi": "100", "font.size": 10})
+    plt.figure(figsize=(5, 3))
     for i in range(nbr_initial_states + 1):
         if results[i] is not None:
             plt.plot(results[i]["discrepancies"], label=f"initial state {i}")

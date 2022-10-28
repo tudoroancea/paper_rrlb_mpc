@@ -41,8 +41,8 @@ def subexp2(rrlb: bool = True, build: bool = True):
 def exp2():
     # run RRLB NMPC and regular NMPC ==================================================
     print("RRLB NMPC Run 0")
+    plt.figure(figsize=(5, 5))
     res_rrlb = subexp2(rrlb=True, build=True)
-    # plt.suptitle("RRLB NMPC")
     rrlb_runtimes = [res_rrlb["time_tot"]]
     rrlb_perf = res_rrlb["performance_measure"]
     print("RRLB performance: {}".format(rrlb_perf))
@@ -59,8 +59,8 @@ def exp2():
     )
 
     print("Regular NMPC Run 0")
+    plt.figure(figsize=(5, 5))
     res_reg = subexp2(rrlb=False, build=True)
-    # plt.suptitle("Regular NMPC")
     reg_runtimes = [res_reg["time_tot"]]
     reg_perf = res_reg["performance_measure"]
     print("Regular performance: {}".format(reg_perf))
@@ -78,10 +78,10 @@ def exp2():
 
     # plot the results ==========================================================
     plt.style.use(["science", "ieee"])
-    plt.rcParams.update({"figure.dpi": "100"})
+    plt.rcParams.update({"figure.dpi": "100", "font.size": 10})
 
     # plot runtimes
-    plt.figure()
+    plt.figure(figsize=(5, 3))
     plt.boxplot([1000 * rrlb_runtimes, 1000 * reg_runtimes])
     plt.xticks([1, 2], ["RRLB", "Regular"])
     plt.ylabel("Runtime [ms]")
@@ -90,7 +90,7 @@ def exp2():
     plt.savefig("exp2_runtimes.png", bbox_inches="tight", dpi=300)
 
     # plot discrepancies
-    plt.figure()
+    plt.figure(figsize=(5, 3))
     plt.plot(res_rrlb["discrepancies"], label="RRLB NMPC")
     plt.plot(res_reg["discrepancies"], label="Regular NMPC")
     plt.legend()
