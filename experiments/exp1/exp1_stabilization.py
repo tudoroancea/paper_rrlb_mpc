@@ -1,13 +1,16 @@
 # The goal of the first experiment is to show that the scheme yields a local
 # asymptotically stable system as proved theoretically.
 
+import matplotlib.pyplot as plt
 import numpy as np
+
 from rrlb import run_closed_loop_simulation
 from rrlb.cstr import find_cstr_steady_state
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 
 np.random.seed(127)
+
+plt.style.use(["science", "ieee"])
+plt.rcParams.update({"figure.dpi": "100", "font.size": 12})
 
 
 def subexp1(xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]), gen: bool = True):
@@ -40,7 +43,7 @@ def subexp1(xinit: np.ndarray = np.array([1.0, 0.5, 100.0, 100.0]), gen: bool = 
 def exp1():
     # generate initial states in the following bounding box:
     # 0.1 <= c_A, c_B <= 6.0 ; 100.0 <= theta <= 140.0 ; 95.0 <= theta_K <= 140.0
-    nbr_initial_states = 5
+    nbr_initial_states = 100
     initial_states = np.zeros((nbr_initial_states, 4))
     initial_states[:, 0] = (
         np.random.random_sample(nbr_initial_states) * (6.0 - 0.1) + 0.1
@@ -66,24 +69,31 @@ def exp1():
     print("Running exp1 on initial state n°0")
     results.append(subexp1(gen=False))
     for i in range(1, nbr_initial_states + 1):
-        if i != 11:
+        try:
             print("Running exp1 on initial state n°" + str(i))
             results.append(subexp1(initial_states[i - 1], gen=False))
-        else:
+            if results[-1]["n_convergence"] == 100:
+                print("Convergence not reached for initial state n°" + str(i))
+            else:
+                print(
+                    "Convergence reached after {} iterations".format(
+                        results[-1]["n_convergence"]
+                    )
+                )
+        except ValueError:
             print("Skipping exp1 on initial state n°" + str(i))
             results.append(None)
 
     # plot discrepancies
-    plt.style.use(["science", "ieee"])
-    plt.rcParams.update({"figure.dpi": "100", "font.size": 10})
     plt.figure(figsize=(5, 3))
-    for i in range(nbr_initial_states + 1):
+    for i in range(min(9, nbr_initial_states + 1)):
         if results[i] is not None:
-            plt.plot(results[i]["discrepancies"], label=f"initial state {i}")
+            plt.semilogy(results[i]["discrepancies"], label=f"initial state {i}")
 
     plt.ylabel(r"distance to $x^*$")
     plt.xlabel("iteration")
     plt.savefig("exp1_discrepancies.png", bbox_inches="tight", dpi=300)
+    plt.savefig("exp1_discrepancies.eps", bbox_inches="tight", dpi=300)
 
     plt.show()
 

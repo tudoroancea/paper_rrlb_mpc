@@ -27,7 +27,7 @@ def subexp2(rrlb: bool = True, build: bool = True):
             "epsilon_0": 30.0,
             "epsilon_rate": 1.0,
         },
-        plot=build,
+        plot=False,
         show_plot=False,
         verbose=False,
         generate_code=build,
@@ -41,7 +41,7 @@ def subexp2(rrlb: bool = True, build: bool = True):
 def exp2():
     # run RRLB NMPC and regular NMPC ==================================================
     print("RRLB NMPC Run 0")
-    plt.figure(figsize=(5, 5))
+    # plt.figure(figsize=(5, 5))
     res_rrlb = subexp2(rrlb=True, build=True)
     rrlb_runtimes = [res_rrlb["time_tot"]]
     rrlb_perf = res_rrlb["performance_measure"]
@@ -59,7 +59,7 @@ def exp2():
     )
 
     print("Regular NMPC Run 0")
-    plt.figure(figsize=(5, 5))
+    # plt.figure(figsize=(5, 5))
     res_reg = subexp2(rrlb=False, build=True)
     reg_runtimes = [res_reg["time_tot"]]
     reg_perf = res_reg["performance_measure"]
@@ -78,35 +78,29 @@ def exp2():
 
     # plot the results ==========================================================
     plt.style.use(["science", "ieee"])
-    plt.rcParams.update({"figure.dpi": "100", "font.size": 10})
+    plt.rcParams.update({"figure.dpi": "100", "font.size": 12})
 
     # plot runtimes
     plt.figure(figsize=(5, 3))
     plt.boxplot([1000 * rrlb_runtimes, 1000 * reg_runtimes])
+    plt.yscale("log")
+    # plt.boxplot([np.log(1000 * rrlb_runtimes), np.log(1000 * reg_runtimes)])
     plt.xticks([1, 2], ["RRLB", "Regular"])
     plt.ylabel("Runtime [ms]")
-    # plt.title("Runtime Comparison")
     plt.tight_layout()
     plt.savefig("exp2_runtimes.png", bbox_inches="tight", dpi=300)
+    plt.savefig("exp2_runtimes.eps", bbox_inches="tight", dpi=300)
 
     # plot discrepancies
     plt.figure(figsize=(5, 3))
-    plt.plot(res_rrlb["discrepancies"], label="RRLB NMPC")
-    plt.plot(res_reg["discrepancies"], label="Regular NMPC")
+    plt.semilogy(res_rrlb["discrepancies"], label="RRLB NMPC")
+    plt.semilogy(res_reg["discrepancies"], label="Regular NMPC")
     plt.legend()
     plt.ylabel(r"distance to $x^*$")
     plt.xlabel("iteration")
-    # plt.title("Discrepancy Comparison")
     plt.tight_layout()
     plt.savefig("exp2_discrepancies.png", bbox_inches="tight", dpi=300)
-
-    # plot constraint violations
-    # plt.figure()
-    # plt.plot(res_rrlb["constraint_violations"], label=f"RRLB NMPC")
-    # plt.plot(res_reg["constraint_violations"], label=f"Regular NMPC")
-    # plt.legend()
-    # plt.ylabel("constraint violation")
-    # plt.xlabel("iteration")
+    plt.savefig("exp2_discrepancies.eps", bbox_inches="tight", dpi=300)
 
     plt.show()
 

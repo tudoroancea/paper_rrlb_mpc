@@ -8,7 +8,7 @@ def beta(x: float, delta: float):
 
 
 plt.style.use(["science", "ieee"])
-plt.rcParams.update({"figure.dpi": "100", "font.size": 10})
+plt.rcParams.update({"figure.dpi": "100", "font.size": 12})
 
 
 fig = plt.figure(figsize=(5, 2))
@@ -58,7 +58,6 @@ f3 = lambda x: B(x, 0.5)
 f4 = lambda x: B(x, 1.0)
 
 
-# plt.subplot(1, 2, 2)
 ax = fig.add_subplot(122, axes_class=AxesZero)
 for direction in ["xzero", "yzero"]:
     # adds arrows at the ends of each axis
@@ -79,11 +78,10 @@ plt.plot(x_vals, [f4(x) for x in x_vals], label=r"$\delta=1.0$")
 plt.plot([-1.0, -1.0], [-2, 20], "k:")
 plt.plot([2.0, 2.0], [-2, 20], "k:")
 plt.ylim([-2, 20])
-# plt.xlabel(r"$x$")
-# plt.ylabel(r"$B(x)$")
 # legend in upper left corner
 plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
 
 plt.tight_layout()
 plt.savefig("rrlb.png", dpi=300, bbox_inches="tight")
+plt.savefig("rrlb.eps", dpi=300, bbox_inches="tight")
 plt.show()
