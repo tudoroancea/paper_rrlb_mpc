@@ -34,14 +34,13 @@ def treatment(n: int, epsilon: float):
 
 
 if __name__ == "__main__":
-    print(available)
     plt.style.use(["science", "ieee"])
     plt.rcParams.update({"figure.dpi": "100", "font.size": 12, "lines.markersize": 3})
     fig = plt.figure(figsize=(5, 2))
     plt.subplot(1, 2, 1)
-    treatment(30, 1.0)
-    plt.subplot(1, 2, 2)
     treatment(30, 10.0)
+    plt.subplot(1, 2, 2)
+    treatment(30, 100.0)
     plt.tight_layout(pad=0.0)
     plt.savefig("exp3.eps", dpi=300, format="eps", bbox_inches="tight")
     plt.savefig("exp3.png", dpi=300, format="png", bbox_inches="tight")

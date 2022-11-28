@@ -1,10 +1,11 @@
 # specfics
 resources
-rrlb-functions.ggb
+additional_figures/rrlb-functions.ggb
 code
 *.npy
 *.csv
 *.png
+*.eps
 
 # ide config files
 .vscode

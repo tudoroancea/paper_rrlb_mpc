@@ -1,0 +1,14 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: paper_rrlb_mpc
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Tudor Andrei
+    family-names: Oancea
+    email: tudor.oancea@epfl.ch
+    affiliation: EPFL

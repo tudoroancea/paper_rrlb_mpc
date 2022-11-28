@@ -92,7 +92,7 @@ def exp3(n: int, epsilon: float):
 
 
 if __name__ == "__main__":
-    # exp3(n=30, epsilon=1.0)
+    exp3(n=30, epsilon=1.0)
     exp3(n=30, epsilon=10.0)
     exp3(n=30, epsilon=30.0)
     exp3(n=30, epsilon=100.0)
