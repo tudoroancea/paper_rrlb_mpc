@@ -70,7 +70,7 @@ ax.plot([lb, lb], ylim, "b:")
 ax.fill_between([lb, xlim[1]], ylim[1], color="b", alpha=0.1)
 ax.legend(loc="center", bbox_to_anchor=(0.6, 0.9))
 plt.tight_layout()
-plt.savefig("rrlb_slides_1.png", dpi=300, bbox_inches="tight")
+plt.savefig("rrlb_slides_1.png", dpi=500, bbox_inches="tight")
 
 # plot 2 : log-barrier function for -1<=z and z<=2
 print("Plot 2")
@@ -79,7 +79,7 @@ ax.plot(x, -np.log(ub - x), "r-", linewidth=2, label=rf"$B_2(z)$")
 ax.plot([ub, ub], ylim, "r:")
 ax.legend(loc="center", bbox_to_anchor=(0.6, 0.9))
 plt.tight_layout()
-plt.savefig("rrlb_slides_2.png", dpi=300, bbox_inches="tight")
+plt.savefig("rrlb_slides_2.png", dpi=500, bbox_inches="tight")
 
 
 # plot 3: recentered log-barrier function for -1<=z<=2
@@ -96,7 +96,7 @@ ax.fill_between([lb, ub], ylim[1], color="r", alpha=0.1)
 ax.fill_between([lb, ub], ylim[1], color="b", alpha=0.1)
 ax.legend(loc="center", bbox_to_anchor=(0.6, 0.9))
 plt.tight_layout()
-plt.savefig("rrlb_slides_3.png", dpi=300, bbox_inches="tight")
+plt.savefig("rrlb_slides_3.png", dpi=500, bbox_inches="tight")
 
 # plot 4: relaxed log-barrier function for -1<=z
 print("Plot 4")
@@ -120,7 +120,7 @@ ax.add_patch(
 ax.text(lb + delta / 2.0, 0.3, r"$\delta$", color="b")
 ax.legend(loc="center", bbox_to_anchor=(0.6, 0.9))
 plt.tight_layout()
-plt.savefig("rrlb_slides_4.png", dpi=300, bbox_inches="tight")
+plt.savefig("rrlb_slides_4.png", dpi=500, bbox_inches="tight")
 
 # plot 5: relaxed recentered log-barrier function for -1<=z<=2
 print("Plot 5")
@@ -129,9 +129,9 @@ ax.fill_between([lb, ub], ylim[1], color="r", alpha=0.1)
 ax.fill_between([lb, ub], ylim[1], color="b", alpha=0.1)
 x = np.linspace(lb + 1e-8, ub - 1e-8, 900)
 # x = np.linspace(lb + delta, ub - delta, 900)
-ax.plot(x, [B(a, 0.0) for a in x], "tab:purple", linewidth=2)
+ax.plot(x, [B(a, 0.0) for a in x], "tab:purple", linewidth=2, label=rf"original $B(z)$")
 x = np.linspace(xlim[0], lb + delta, 100)
-ax.plot(x, [B(a, delta) for a in x], "tab:purple", linestyle="-.")
+ax.plot(x, [B(a, delta) for a in x], "tab:purple", linestyle="-.", label=rf"relaxed $B(z)$")
 x = np.linspace(ub - delta, xlim[1], 100)
 ax.plot(x, [B(a, delta) for a in x], "tab:purple", linestyle="-.")
 ax.plot([lb, lb], ylim, "b:")
@@ -157,9 +157,10 @@ ax.add_patch(
         color="r",
     )
 )
+ax.legend(loc="center", bbox_to_anchor=(0.6, 0.9))
 ax.text(ub - delta / 2.0, 0.3, r"$\delta$", color="r")
 plt.tight_layout()
-plt.savefig("rrlb_slides_5.png", dpi=300, bbox_inches="tight")
+plt.savefig("rrlb_slides_5.png", dpi=500, bbox_inches="tight")
 
 if sys.argv[-1] == "show":
     plt.show()

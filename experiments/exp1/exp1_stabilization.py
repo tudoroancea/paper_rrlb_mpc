@@ -91,9 +91,9 @@ def exp1():
             plt.semilogy(results[i]["discrepancies"], label=f"initial state {i}")
 
     plt.ylabel(r"distance to $x^*$")
-    plt.xlabel("iteration")
-    plt.savefig("exp1_discrepancies.png", bbox_inches="tight", dpi=300)
-    plt.savefig("exp1_discrepancies.eps", bbox_inches="tight", dpi=300)
+    plt.xlabel("simulation step")
+    plt.savefig("exp1_discrepancies.png", bbox_inches="tight", dpi=500)
+    plt.savefig("exp1_discrepancies.eps", bbox_inches="tight", dpi=500)
 
     plt.show()
 

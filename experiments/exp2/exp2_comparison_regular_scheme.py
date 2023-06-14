@@ -97,10 +97,10 @@ def exp2():
     plt.semilogy(res_reg["discrepancies"], label="Regular NMPC")
     plt.legend()
     plt.ylabel(r"distance to $x^*$")
-    plt.xlabel("iteration")
+    plt.xlabel("simulation step")
     plt.tight_layout()
-    plt.savefig("exp2_discrepancies.png", bbox_inches="tight", dpi=300)
-    plt.savefig("exp2_discrepancies.eps", bbox_inches="tight", dpi=300)
+    plt.savefig("exp2_discrepancies.png", bbox_inches="tight", dpi=500)
+    plt.savefig("exp2_discrepancies.eps", bbox_inches="tight", dpi=500)
 
     plt.show()
 

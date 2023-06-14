@@ -42,6 +42,5 @@ if __name__ == "__main__":
     plt.subplot(1, 2, 2)
     treatment(30, 100.0)
     plt.tight_layout(pad=0.0)
-    plt.savefig("exp3.eps", dpi=300, format="eps", bbox_inches="tight")
-    plt.savefig("exp3.png", dpi=300, format="png", bbox_inches="tight")
+    plt.savefig("exp3.png", dpi=600, format="png", bbox_inches="tight")
     plt.show()
